@@ -1,7 +1,7 @@
 import { Physics } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import BilliardTable from "./components/billiardTable";
+import { Ball, BilliardTable } from "./components/billiardTable";
 
 export default function GameScene() {
 	return (
@@ -11,6 +11,7 @@ export default function GameScene() {
 				<pointLight position={[10, 10, 10]} />
 				<Physics gravity={[0, -9.8, 0]}>
 					<BilliardTable />
+					<Ball />
 				</Physics>
 				<OrbitControls />
 			</Canvas>
