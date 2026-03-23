@@ -2,23 +2,26 @@ import { useBox, useSphere } from "@react-three/cannon";
 
 // 9フィートテーブルの定数 (メートル単位)
 
+// スケーリング定数
+const SCALE = 3;
+
 // クッションに囲まれた台面の広さ
-const PLAY_WIDTH = 1.27;
-const PLAY_LENGTH = 2.54;
-const PLAY_HEIGHT = 0.1;
+const PLAY_WIDTH = 1.27 * SCALE;
+const PLAY_LENGTH = 2.54 * SCALE;
+const PLAY_HEIGHT = 0.1 * SCALE;
 
 // 以下、台面の長い方に面する方をSIDE, 短い方に面する方をTOPとする。
 
 // 台面を取り囲むクッション
-const CUSHION_WIDTH = 0.04;
-const SIDE_CUSHION_LENGTH = 1.12;
-const TOP_CUSHION_LENGTH = 1.11;
-const CUSHION_HEIGHT = 0.115;
+const CUSHION_WIDTH = 0.04 * SCALE;
+const SIDE_CUSHION_LENGTH = 1.12 * SCALE;
+const TOP_CUSHION_LENGTH = 1.11 * SCALE;
+const CUSHION_HEIGHT = 0.115 * SCALE;
 
 // クッションの周りの囲い
-const RAIL_WIDTH = 0.08;
-const SIDE_RALE_LENGTH = 1.16;
-const TOP_RAIL_LENGTH = 1.23;
+const RAIL_WIDTH = 0.08 * SCALE;
+const SIDE_RALE_LENGTH = 1.16 * SCALE;
+const TOP_RAIL_LENGTH = 1.23 * SCALE;
 const RAIL_HEIGHT = CUSHION_HEIGHT;
 
 //　台全体の周りを取り囲む囲い
@@ -29,7 +32,7 @@ const TOP_OUTER_LENGTH =
 const SIDE_OUTER_LENGTH =
 	PLAY_LENGTH + (CUSHION_WIDTH + RAIL_WIDTH + OUTER_WIDTH) * 2;
 
-const SIDE_POCKET_SIZE = 0.14;
+const SIDE_POCKET_SIZE = 0.14 * SCALE;
 
 // クッションと囲いの下の隙間を埋める部分
 const TABLE_BOTTOM_WIDTH = CUSHION_WIDTH + RAIL_WIDTH;
