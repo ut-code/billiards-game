@@ -1,20 +1,27 @@
 import { useBox, useSphere } from "@react-three/cannon";
 
 // 9フィートテーブルの定数 (メートル単位)
+
+// クッションに囲まれた台面の広さ
 const PLAY_WIDTH = 1.27;
 const PLAY_LENGTH = 2.54;
 const PLAY_HEIGHT = 0.1;
 
+// 以下、台面の長い方に面する方をSIDE, 短い方に面する方をTOPとする。
+
+// 台面を取り囲むクッション
 const CUSHION_WIDTH = 0.04;
 const SIDE_CUSHION_LENGTH = 1.12;
 const TOP_CUSHION_LENGTH = 1.11;
 const CUSHION_HEIGHT = 0.115;
 
+// クッションの周りの囲い
 const RAIL_WIDTH = 0.08;
 const SIDE_RALE_LENGTH = 1.16;
 const TOP_RAIL_LENGTH = 1.23;
 const RAIL_HEIGHT = CUSHION_HEIGHT;
 
+//　台全体の周りを取り囲む囲い
 const OUTER_WIDTH = 0.02;
 const OUTER_HEIGHT = PLAY_HEIGHT + RAIL_HEIGHT;
 const TOP_OUTER_LENGTH =
@@ -24,7 +31,13 @@ const SIDE_OUTER_LENGTH =
 
 const SIDE_POCKET_SIZE = 0.14;
 
-const OFFSET_Y = PLAY_HEIGHT / 2; //ボールを置くときに跳ね上がらないように
+// クッションと囲いの下の隙間を埋める部分
+const TABLE_BOTTOM_WIDTH = CUSHION_WIDTH + RAIL_WIDTH;
+const TABLE_BOTTOM_HEIGHT = PLAY_HEIGHT;
+const SIDE_TABLE_BOTTOM_LENGTH = (PLAY_LENGTH - SIDE_POCKET_SIZE) / 2;
+const TOP_TABLE_BOTTOM_LENGTH = PLAY_WIDTH;
+
+const OFFSET_Y = PLAY_HEIGHT / 2; //高さ調整
 const CUSHION_Y = (PLAY_HEIGHT + CUSHION_HEIGHT) / 2 - OFFSET_Y;
 const RAIL_Y = (PLAY_HEIGHT + RAIL_HEIGHT) / 2 - OFFSET_Y;
 const OUTER_Y = RAIL_HEIGHT / 2 - OFFSET_Y;
@@ -247,6 +260,86 @@ function SideOuter({ position }: { position: Pos }) {
 	);
 }
 
+const SideTableBottomPos = [
+	{
+		X: (PLAY_WIDTH + TABLE_BOTTOM_WIDTH) / 2,
+		Y: -OFFSET_Y,
+		Z: (SIDE_POCKET_SIZE + SIDE_TABLE_BOTTOM_LENGTH) / 2,
+	},
+	{
+		X: -(PLAY_WIDTH + TABLE_BOTTOM_WIDTH) / 2,
+		Y: -OFFSET_Y,
+		Z: (SIDE_POCKET_SIZE + SIDE_TABLE_BOTTOM_LENGTH) / 2,
+	},
+	{
+		X: (PLAY_WIDTH + TABLE_BOTTOM_WIDTH) / 2,
+		Y: -OFFSET_Y,
+		Z: -(SIDE_POCKET_SIZE + SIDE_TABLE_BOTTOM_LENGTH) / 2,
+	},
+	{
+		X: -(PLAY_WIDTH + TABLE_BOTTOM_WIDTH) / 2,
+		Y: -OFFSET_Y,
+		Z: -(SIDE_POCKET_SIZE + SIDE_TABLE_BOTTOM_LENGTH) / 2,
+	},
+];
+
+function SideTableBottom({ position }: { position: Pos }) {
+	const [ref] = useBox(() => ({
+		mass: 0,
+		position: [position.X, position.Y, position.Z],
+		args: [TABLE_BOTTOM_WIDTH, TABLE_BOTTOM_HEIGHT, SIDE_TABLE_BOTTOM_LENGTH],
+		type: "Static",
+	}));
+
+	return (
+		<mesh ref={ref} rotation={[0, 0, 0]}>
+			<boxGeometry
+				args={[
+					TABLE_BOTTOM_WIDTH,
+					TABLE_BOTTOM_HEIGHT,
+					SIDE_TABLE_BOTTOM_LENGTH,
+				]}
+			/>
+			<meshStandardMaterial color="grey" />
+		</mesh>
+	);
+}
+
+const TopTableBottomPos = [
+	{
+		X: 0,
+		Y: -OFFSET_Y,
+		Z: (PLAY_LENGTH + TABLE_BOTTOM_WIDTH) / 2,
+	},
+	{
+		X: 0,
+		Y: -OFFSET_Y,
+		Z: -(PLAY_LENGTH + TABLE_BOTTOM_WIDTH) / 2,
+	},
+];
+
+function TopTableBottom({ position }: { position: Pos }) {
+	const [ref] = useBox(() => ({
+		mass: 0,
+		position: [position.X, position.Y, position.Z],
+		args: [TOP_TABLE_BOTTOM_LENGTH, TABLE_BOTTOM_HEIGHT, TABLE_BOTTOM_WIDTH],
+		type: "Static",
+	}));
+
+	return (
+		<mesh ref={ref} rotation={[0, 0, 0]}>
+			<boxGeometry
+				args={[
+					TOP_TABLE_BOTTOM_LENGTH,
+					TABLE_BOTTOM_HEIGHT,
+					TABLE_BOTTOM_WIDTH,
+				]}
+			/>
+			<meshStandardMaterial color="grey" />
+		</mesh>
+	);
+}
+
 export function BilliardTable() {
 	return (
 		<>
@@ -268,6 +361,12 @@ export function BilliardTable() {
 			})}
 			{SideOuterPos.map((pos) => {
 				return <SideOuter key={crypto.randomUUID()} position={pos} />;
+			})}
+			{SideTableBottomPos.map((pos) => {
+				return <SideTableBottom key={crypto.randomUUID()} position={pos} />;
+			})}
+			{TopTableBottomPos.map((pos) => {
+				return <TopTableBottom key={crypto.randomUUID()} position={pos} />;
 			})}
 		</>
 	);
