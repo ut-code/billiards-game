@@ -1,9 +1,13 @@
 import { useBox, useSphere } from "@react-three/cannon";
+import { useTexture } from "@react-three/drei";
+import type * as THREE from "three";
+import clothTexture from "@/assets/tableTexture/tableCloth.jpg";
+import woodTexture from "@/assets/tableTexture/tableWood.jpg";
 
 // 9フィートテーブルの定数 (メートル単位)
 
 // スケーリング定数
-const SCALE = 3;
+const SCALE = 2;
 
 // クッションに囲まれた台面の広さ
 const PLAY_WIDTH = 1.27 * SCALE;
@@ -46,8 +50,12 @@ const RAIL_Y = (PLAY_HEIGHT + RAIL_HEIGHT) / 2 - OFFSET_Y;
 const OUTER_Y = RAIL_HEIGHT / 2 - OFFSET_Y;
 
 type Pos = { X: number; Y: number; Z: number };
+type TableMaterialProps = { position: Pos; texture: THREE.Texture };
 
-function Plane() {
+useTexture.preload(clothTexture);
+useTexture.preload(woodTexture);
+
+function Plane({ texture }: { texture: THREE.Texture }) {
 	// useBoxフックで物理演算を追加
 	const [ref] = useBox(() => ({
 		mass: 0, // 質量0にすることで、動かない固定された物体にする
@@ -60,7 +68,7 @@ function Plane() {
 	return (
 		<mesh ref={ref}>
 			<boxGeometry args={[PLAY_WIDTH, PLAY_HEIGHT, PLAY_LENGTH]} />
-			<meshStandardMaterial color="lightblue" />
+			<meshStandardMaterial map={texture} color="#006633" />
 		</mesh>
 	);
 }
@@ -88,7 +96,7 @@ const SideCushionPos = [
 	},
 ];
 
-function SideCushion({ position }: { position: Pos }) {
+function SideCushion({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -102,7 +110,7 @@ function SideCushion({ position }: { position: Pos }) {
 			<boxGeometry
 				args={[CUSHION_WIDTH, CUSHION_HEIGHT, SIDE_CUSHION_LENGTH]}
 			/>
-			<meshStandardMaterial color="green" />
+			<meshStandardMaterial map={texture} color="#006633" />
 		</mesh>
 	);
 }
@@ -120,7 +128,7 @@ const TopCushionPos = [
 	},
 ];
 
-function TopCushion({ position }: { position: Pos }) {
+function TopCushion({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -132,7 +140,7 @@ function TopCushion({ position }: { position: Pos }) {
 	return (
 		<mesh ref={ref} rotation={[0, 0, 0]}>
 			<boxGeometry args={[TOP_CUSHION_LENGTH, CUSHION_HEIGHT, CUSHION_WIDTH]} />
-			<meshStandardMaterial color="green" />
+			<meshStandardMaterial map={texture} color="#006633" />
 		</mesh>
 	);
 }
@@ -160,7 +168,7 @@ const SideRailPos = [
 	},
 ];
 
-function SideRail({ position }: { position: Pos }) {
+function SideRail({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -171,7 +179,7 @@ function SideRail({ position }: { position: Pos }) {
 	return (
 		<mesh ref={ref} rotation={[0, 0, 0]}>
 			<boxGeometry args={[RAIL_WIDTH, RAIL_HEIGHT, SIDE_RALE_LENGTH]} />
-			<meshStandardMaterial color="brown" />
+			<meshStandardMaterial map={texture} color="#4b2e1e" />
 		</mesh>
 	);
 }
@@ -189,7 +197,7 @@ const TopRailPos = [
 	},
 ];
 
-function TopRail({ position }: { position: Pos }) {
+function TopRail({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -200,7 +208,7 @@ function TopRail({ position }: { position: Pos }) {
 	return (
 		<mesh ref={ref} rotation={[0, 0, 0]}>
 			<boxGeometry args={[TOP_RAIL_LENGTH, RAIL_HEIGHT, RAIL_WIDTH]} />
-			<meshStandardMaterial color="brown" />
+			<meshStandardMaterial map={texture} color="#4b2e1e" />
 		</mesh>
 	);
 }
@@ -218,7 +226,7 @@ const TopOuterPos = [
 	},
 ];
 
-function TopOuter({ position }: { position: Pos }) {
+function TopOuter({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -229,7 +237,7 @@ function TopOuter({ position }: { position: Pos }) {
 	return (
 		<mesh ref={ref} rotation={[0, 0, 0]}>
 			<boxGeometry args={[TOP_OUTER_LENGTH, OUTER_HEIGHT, OUTER_WIDTH]} />
-			<meshStandardMaterial color="black" />
+			<meshStandardMaterial map={texture} color="#4b2e1e" />
 		</mesh>
 	);
 }
@@ -247,7 +255,7 @@ const SideOuterPos = [
 	},
 ];
 
-function SideOuter({ position }: { position: Pos }) {
+function SideOuter({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -258,7 +266,7 @@ function SideOuter({ position }: { position: Pos }) {
 	return (
 		<mesh ref={ref} rotation={[0, 0, 0]}>
 			<boxGeometry args={[OUTER_WIDTH, OUTER_HEIGHT, SIDE_OUTER_LENGTH]} />
-			<meshStandardMaterial color="black" />
+			<meshStandardMaterial map={texture} color="#4b2e1e" />
 		</mesh>
 	);
 }
@@ -286,7 +294,7 @@ const SideTableBottomPos = [
 	},
 ];
 
-function SideTableBottom({ position }: { position: Pos }) {
+function SideTableBottom({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -303,7 +311,7 @@ function SideTableBottom({ position }: { position: Pos }) {
 					SIDE_TABLE_BOTTOM_LENGTH,
 				]}
 			/>
-			<meshStandardMaterial color="grey" />
+			<meshStandardMaterial map={texture} color="#006633" />
 		</mesh>
 	);
 }
@@ -321,7 +329,7 @@ const TopTableBottomPos = [
 	},
 ];
 
-function TopTableBottom({ position }: { position: Pos }) {
+function TopTableBottom({ position, texture }: TableMaterialProps) {
 	const [ref] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
@@ -338,38 +346,72 @@ function TopTableBottom({ position }: { position: Pos }) {
 					TABLE_BOTTOM_WIDTH,
 				]}
 			/>
-			<meshStandardMaterial color="grey" />
+			<meshStandardMaterial map={texture} color="#006633" />
 		</mesh>
 	);
 }
 
 export function BilliardTable() {
+	const cloth = useTexture(clothTexture);
+	const wood = useTexture(woodTexture);
 	return (
 		<>
-			<Plane />
+			<Plane texture={cloth} />
 			{SideCushionPos.map((pos) => {
-				return <SideCushion key={crypto.randomUUID()} position={pos} />;
+				return (
+					<SideCushion
+						texture={cloth}
+						key={crypto.randomUUID()}
+						position={pos}
+					/>
+				);
 			})}
 			{TopCushionPos.map((pos) => {
-				return <TopCushion key={crypto.randomUUID()} position={pos} />;
+				return (
+					<TopCushion
+						texture={cloth}
+						key={crypto.randomUUID()}
+						position={pos}
+					/>
+				);
 			})}
 			{SideRailPos.map((pos) => {
-				return <SideRail key={crypto.randomUUID()} position={pos} />;
+				return (
+					<SideRail texture={wood} key={crypto.randomUUID()} position={pos} />
+				);
 			})}
 			{TopRailPos.map((pos) => {
-				return <TopRail key={crypto.randomUUID()} position={pos} />;
+				return (
+					<TopRail texture={wood} key={crypto.randomUUID()} position={pos} />
+				);
 			})}
 			{TopOuterPos.map((pos) => {
-				return <TopOuter key={crypto.randomUUID()} position={pos} />;
+				return (
+					<TopOuter texture={wood} key={crypto.randomUUID()} position={pos} />
+				);
 			})}
 			{SideOuterPos.map((pos) => {
-				return <SideOuter key={crypto.randomUUID()} position={pos} />;
+				return (
+					<SideOuter texture={wood} key={crypto.randomUUID()} position={pos} />
+				);
 			})}
 			{SideTableBottomPos.map((pos) => {
-				return <SideTableBottom key={crypto.randomUUID()} position={pos} />;
+				return (
+					<SideTableBottom
+						texture={cloth}
+						key={crypto.randomUUID()}
+						position={pos}
+					/>
+				);
 			})}
 			{TopTableBottomPos.map((pos) => {
-				return <TopTableBottom key={crypto.randomUUID()} position={pos} />;
+				return (
+					<TopTableBottom
+						texture={cloth}
+						key={crypto.randomUUID()}
+						position={pos}
+					/>
+				);
 			})}
 		</>
 	);
