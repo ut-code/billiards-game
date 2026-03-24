@@ -1,4 +1,4 @@
-import { useBox, useSphere } from "@react-three/cannon";
+import { useBox } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
 import type * as THREE from "three";
 import clothTexture from "@/assets/tableTexture/tableCloth.jpg";
@@ -414,24 +414,5 @@ export function BilliardTable() {
 				);
 			})}
 		</>
-	);
-}
-
-export function Ball() {
-	// useSphereフックを使ってボールを物理的に作成
-	const [ref] = useSphere(() => ({
-		mass: 1, // ボールに質量を設定
-		position: [0, 0.2, 0], // 初期位置を設定 (プレイエリアの上)
-		velocity: [0.1, 0, 0.4],
-		args: [0.04], // ボールの半径
-		type: "Dynamic",
-		material: { friction: 0.1, restitution: 0.9 }, // ボールの反発
-	}));
-
-	return (
-		<mesh ref={ref}>
-			<sphereGeometry args={[0.04, 32, 32]} />
-			<meshStandardMaterial color="red" />
-		</mesh>
 	);
 }
