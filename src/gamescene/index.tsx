@@ -67,16 +67,16 @@ export default function GameScene() {
 				<Physics gravity={[0, -9.8, 0]}>
 					<Suspense>
 						<BilliardTable />
+						{balls.map((ball) => (
+							<Ball
+								key={ball.id}
+								id={ball.id}
+								textureUrl={ball.textureUrl}
+								position={ball.position}
+								velocity={ball.velocity}
+							/>
+						))}
 					</Suspense>
-					{balls.map((ball) => (
-						<Ball
-							key={ball.id}
-							id={ball.id}
-							textureUrl={ball.textureUrl}
-							position={ball.position}
-							velocity={ball.velocity}
-						/>
-					))}
 				</Physics>
 				<OrbitControls />
 			</Canvas>
