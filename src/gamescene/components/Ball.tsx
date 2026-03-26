@@ -1,6 +1,7 @@
 import { useSphere } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
+import { useEffect } from "react";
 import * as THREE from "three";
 
 type BallProps = {
@@ -8,7 +9,9 @@ type BallProps = {
 	textureUrl: string;
 	position: [number, number, number];
 	velocity?: [number, number, number];
-	enableClick?: boolean;
+	onSelect?: () => void;
+	shotPower?: number | null;
+	onShotApplied?: () => void;
 };
 
 export function Ball({
@@ -16,7 +19,9 @@ export function Ball({
 	textureUrl,
 	position,
 	velocity,
-	enableClick,
+	onSelect,
+	shotPower,
+	onShotApplied,
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
@@ -31,28 +36,27 @@ export function Ball({
 
 	const { camera } = useThree();
 
-	const handleClick = () => {
+	useEffect(() => {
+		if (shotPower == null || shotPower <= 0) return;
+		if (!ref.current) return;
+
 		const ballPosition = new THREE.Vector3();
-		if (!ref.current) {
-			return;
-		}
 		ref.current.getWorldPosition(ballPosition);
 
-		const direction = ballPosition.clone().sub(camera.position);
-
+		const direction = ballPosition.sub(camera.position);
 		direction.y = 0; // 水平方向のみにする
 		direction.normalize();
 
-		const force = 0.5;
 		api.applyImpulse(
-			[direction.x * force, 0.0, direction.z * force],
+			[direction.x * shotPower, 0.0, direction.z * shotPower],
 			[0, 0, 0], // 力を加える位置（ボールの中心）
 		);
-	};
+		onShotApplied?.();
+	}, [shotPower, api, camera, ref, onShotApplied]);
 
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: mesh is a React Three Fiber 3D element, not an HTML element
-		<mesh ref={ref} name={id} onClick={enableClick ? handleClick : undefined}>
+		<mesh ref={ref} name={id} onClick={onSelect}>
 			<sphereGeometry args={[0.04, 32, 32]} />
 			<meshStandardMaterial map={texture} roughness={0.1} metalness={0.5} />
 		</mesh>
