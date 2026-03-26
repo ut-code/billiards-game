@@ -1,7 +1,7 @@
 import { Physics } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useRef, useState } from "react";
 import poolballs0 from "../assets/ballTexture/poolballs0.png";
 import poolballs1 from "../assets/ballTexture/poolballs1.png";
 import poolballs2 from "../assets/ballTexture/poolballs2.png";
@@ -9,7 +9,7 @@ import poolballs3 from "../assets/ballTexture/poolballs3.png";
 import poolballs4 from "../assets/ballTexture/poolballs4.png";
 import poolballs5 from "../assets/ballTexture/poolballs5.png";
 import poolballs6 from "../assets/ballTexture/poolballs6.png";
-import { Ball } from "./components/Ball";
+import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { PowerGauge } from "./components/PowerGauge";
 
@@ -63,27 +63,22 @@ const balls: BallConfig[] = [
 
 export default function GameScene() {
 	const [isCharging, setIsCharging] = useState(false);
-	const [shotPower, setShotPower] = useState<number | null>(null);
-	const [selectedBallId, setSelectedBallId] = useState<string | null>(null);
+	const shootRef = useRef<ShootFn | null>(null);
 
-	const handleBallSelect = useCallback((ballId: string) => {
-		setSelectedBallId(ballId);
+	const handleBallSelect = useCallback((shoot: ShootFn) => {
+		shootRef.current = shoot;
 		setIsCharging(true);
 	}, []);
 
 	const handleConfirm = useCallback((power: number) => {
-		setShotPower(power);
+		shootRef.current?.(power);
+		shootRef.current = null;
 		setIsCharging(false);
 	}, []);
 
 	const handleCancel = useCallback(() => {
+		shootRef.current = null;
 		setIsCharging(false);
-		setSelectedBallId(null);
-	}, []);
-
-	const handleShotApplied = useCallback(() => {
-		setShotPower(null);
-		setSelectedBallId(null);
 	}, []);
 
 	return (
@@ -102,10 +97,8 @@ export default function GameScene() {
 								position={ball.position}
 								velocity={ball.velocity}
 								onSelect={
-									ball.shootable ? () => handleBallSelect(ball.id) : undefined
+									ball.shootable && !isCharging ? handleBallSelect : undefined
 								}
-								shotPower={selectedBallId === ball.id ? shotPower : null}
-								onShotApplied={handleShotApplied}
 							/>
 						))}
 					</Suspense>
