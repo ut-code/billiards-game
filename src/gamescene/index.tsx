@@ -17,6 +17,7 @@ type BallConfig = {
 	textureUrl: string;
 	position: [number, number, number];
 	velocity?: [number, number, number];
+	enableClick?: boolean;
 };
 
 const balls: BallConfig[] = [
@@ -25,6 +26,7 @@ const balls: BallConfig[] = [
 		textureUrl: poolballs0,
 		position: [-0.4, 0.2, 0.2],
 		velocity: [0.6, 0, 0],
+		enableClick: true,
 	},
 	{
 		id: "poolballs1",
@@ -74,6 +76,7 @@ export default function GameScene() {
 								textureUrl={ball.textureUrl}
 								position={ball.position}
 								velocity={ball.velocity}
+								enableClick={ball.enableClick}
 							/>
 						))}
 					</Suspense>
