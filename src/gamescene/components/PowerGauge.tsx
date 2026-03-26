@@ -50,7 +50,7 @@ export function PowerGauge({
 	}, [onCancel]);
 
 	return (
-		<div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+		<div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 bg-black/60 rounded-xl px-6 py-4 backdrop-blur-sm">
 			<div className="text-white text-sm">
 				Power: {Math.round(power * 100)}%
 			</div>
