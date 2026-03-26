@@ -16,21 +16,25 @@ export function PowerGauge({
 	const [power, setPower] = useState(0);
 	const animationRef = useRef<number>(0);
 	const powerRef = useRef(0);
-
 	const directionRef = useRef(1);
+	const prevTimeRef = useRef<number | null>(null);
 
 	useEffect(() => {
-		const speed = 0.02;
-		const animate = () => {
-			powerRef.current += speed * directionRef.current;
-			if (powerRef.current >= 1) {
-				powerRef.current = 1;
-				directionRef.current = -1;
-			} else if (powerRef.current <= 0) {
-				powerRef.current = 0;
-				directionRef.current = 1;
+		const speed = 1.5; // 1秒あたりの往復量（0→1に約0.67秒）
+		const animate = (timestamp: number) => {
+			if (prevTimeRef.current != null) {
+				const delta = (timestamp - prevTimeRef.current) / 1000;
+				powerRef.current += speed * delta * directionRef.current;
+				if (powerRef.current >= 1) {
+					powerRef.current = 1;
+					directionRef.current = -1;
+				} else if (powerRef.current <= 0) {
+					powerRef.current = 0;
+					directionRef.current = 1;
+				}
+				setPower(powerRef.current);
 			}
-			setPower(powerRef.current);
+			prevTimeRef.current = timestamp;
 			animationRef.current = requestAnimationFrame(animate);
 		};
 		animationRef.current = requestAnimationFrame(animate);
