@@ -1,7 +1,7 @@
 import { Physics } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, useCallback, useRef, useState } from "react";
 import poolballs0 from "../assets/ballTexture/poolballs0.png";
 import poolballs1 from "../assets/ballTexture/poolballs1.png";
 import poolballs2 from "../assets/ballTexture/poolballs2.png";
@@ -9,14 +9,16 @@ import poolballs3 from "../assets/ballTexture/poolballs3.png";
 import poolballs4 from "../assets/ballTexture/poolballs4.png";
 import poolballs5 from "../assets/ballTexture/poolballs5.png";
 import poolballs6 from "../assets/ballTexture/poolballs6.png";
-import { Ball } from "./components/Ball";
+import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
+import { PowerGauge } from "./components/PowerGauge";
 
 type BallConfig = {
 	id: string;
 	textureUrl: string;
 	position: [number, number, number];
 	velocity?: [number, number, number];
+	shootable?: boolean;
 };
 
 const balls: BallConfig[] = [
@@ -25,6 +27,7 @@ const balls: BallConfig[] = [
 		textureUrl: poolballs0,
 		position: [-0.4, 0.2, 0.2],
 		velocity: [0.6, 0, 0],
+		shootable: true,
 	},
 	{
 		id: "poolballs1",
@@ -59,6 +62,25 @@ const balls: BallConfig[] = [
 ];
 
 export default function GameScene() {
+	const [isCharging, setIsCharging] = useState(false);
+	const shootRef = useRef<ShootFn | null>(null);
+
+	const handleBallSelect = useCallback((shoot: ShootFn) => {
+		shootRef.current = shoot;
+		setIsCharging(true);
+	}, []);
+
+	const handleConfirm = useCallback((power: number) => {
+		shootRef.current?.(power);
+		shootRef.current = null;
+		setIsCharging(false);
+	}, []);
+
+	const handleCancel = useCallback(() => {
+		shootRef.current = null;
+		setIsCharging(false);
+	}, []);
+
 	return (
 		<div className="relative h-screen w-screen">
 			<Canvas camera={{ position: [0, 5, 5], fov: 45 }} shadows>
@@ -74,12 +96,18 @@ export default function GameScene() {
 								textureUrl={ball.textureUrl}
 								position={ball.position}
 								velocity={ball.velocity}
+								onSelect={
+									ball.shootable && !isCharging ? handleBallSelect : undefined
+								}
 							/>
 						))}
 					</Suspense>
 				</Physics>
 				<OrbitControls />
 			</Canvas>
+			{isCharging && (
+				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
+			)}
 		</div>
 	);
 }
