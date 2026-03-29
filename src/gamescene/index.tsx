@@ -73,6 +73,7 @@ export default function GameScene() {
 	const shootRef = useRef<ShootFn | null>(null);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
+	const [shotCount, setShotCount] = useState(0);
 
 	// いずれかのボールが動いているか判定
 	const anyBallMoving = useMemo(
@@ -107,6 +108,7 @@ export default function GameScene() {
 		shootRef.current?.(power);
 		shootRef.current = null;
 		setIsCharging(false);
+		setShotCount((prev) => prev + 1);
 	}, []);
 
 	const handleCancel = useCallback(() => {
@@ -143,8 +145,8 @@ export default function GameScene() {
 			</Canvas>
 			{showRoundStart && (
 				<div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-					<div className="text-6xl font-black text-white italic drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-300">
-						ROUND START
+					<div className="text-6xl font-black text-red-500 italic drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-300">
+						{shotCount === 0 ? "ROUND START" : "SHOT NOW"}
 					</div>
 				</div>
 			)}
