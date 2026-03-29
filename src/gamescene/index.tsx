@@ -1,7 +1,7 @@
 import { Physics } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import poolballs0 from "../assets/ballTexture/poolballs0.png";
 import poolballs1 from "../assets/ballTexture/poolballs1.png";
 import poolballs2 from "../assets/ballTexture/poolballs2.png";
@@ -64,6 +64,20 @@ const balls: BallConfig[] = [
 export default function GameScene() {
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn | null>(null);
+	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
+
+	// いずれかのボールが動いているか判定
+	const anyBallMoving = useMemo(
+		() => Object.values(movingBalls).some((moving) => moving),
+		[movingBalls],
+	);
+
+	const handleMovingChange = useCallback((id: string, isMoving: boolean) => {
+		setMovingBalls((prev) => {
+			if (prev[id] === isMoving) return prev;
+			return { ...prev, [id]: isMoving };
+		});
+	}, []);
 
 	const handleBallSelect = useCallback((shoot: ShootFn) => {
 		shootRef.current = shoot;
@@ -96,8 +110,11 @@ export default function GameScene() {
 								textureUrl={ball.textureUrl}
 								position={ball.position}
 								velocity={ball.velocity}
+								onMovingChange={handleMovingChange}
 								onSelect={
-									ball.shootable && !isCharging ? handleBallSelect : undefined
+									ball.shootable && !isCharging && !anyBallMoving
+										? handleBallSelect
+										: undefined
 								}
 							/>
 						))}

@@ -1,7 +1,7 @@
 import { useSphere } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 
 export type ShootFn = (power: number) => void;
@@ -12,6 +12,7 @@ type BallProps = {
 	position: [number, number, number];
 	velocity?: [number, number, number];
 	onSelect?: (shoot: ShootFn) => void;
+	onMovingChange?: (id: string, isMoving: boolean) => void;
 };
 
 export function Ball({
@@ -20,6 +21,7 @@ export function Ball({
 	position,
 	velocity,
 	onSelect,
+	onMovingChange,
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
@@ -34,10 +36,30 @@ export function Ball({
 		angularDamping: 0.4, // 回転の減衰を追加
 	}));
 
+	const isMoving = useRef(false);
+
+	// 物理エンジンの速度を監視して、移動中かどうかを判定
+	useEffect(() => {
+		let wasMoving = false;
+		const unsubscribe = api.velocity.subscribe((v) => {
+			// 速度の2乗和で判定（計算負荷軽減のため。0.001は微小な振動を無視するための閾値）
+			const speedSq = v[0] ** 2 + v[2] ** 2; //　y軸方向の速度を無視
+			const moving = speedSq > 0.001;
+			isMoving.current = moving;
+
+			if (moving !== wasMoving) {
+				wasMoving = moving;
+				onMovingChange?.(id, moving);
+			}
+		});
+
+		return () => unsubscribe();
+	}, [api.velocity, id, onMovingChange]);
+
 	const { camera } = useThree();
 
 	const handleClick = useCallback(() => {
-		if (!onSelect) return;
+		if (!onSelect || isMoving.current) return;
 
 		onSelect((power: number) => {
 			if (!ref.current) return;
