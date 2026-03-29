@@ -1,7 +1,14 @@
 import { Physics } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback, useMemo, useRef, useState } from "react";
+import {
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import poolballs0 from "../assets/ballTexture/poolballs0.png";
 import poolballs1 from "../assets/ballTexture/poolballs1.png";
 import poolballs2 from "../assets/ballTexture/poolballs2.png";
@@ -65,12 +72,24 @@ export default function GameScene() {
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn | null>(null);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
+	const [showRoundStart, setShowRoundStart] = useState(false);
 
 	// いずれかのボールが動いているか判定
 	const anyBallMoving = useMemo(
 		() => Object.values(movingBalls).some((moving) => moving),
 		[movingBalls],
 	);
+
+	// ボールが止まった瞬間にUIを表示する
+	useEffect(() => {
+		if (!anyBallMoving) {
+			setShowRoundStart(true);
+			const timer = setTimeout(() => {
+				setShowRoundStart(false);
+			}, 1000);
+			return () => clearTimeout(timer);
+		}
+	}, [anyBallMoving]);
 
 	const handleMovingChange = useCallback((id: string, isMoving: boolean) => {
 		setMovingBalls((prev) => {
@@ -122,6 +141,13 @@ export default function GameScene() {
 				</Physics>
 				<OrbitControls />
 			</Canvas>
+			{showRoundStart && (
+				<div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+					<div className="text-6xl font-black text-white italic drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-300">
+						ROUND START
+					</div>
+				</div>
+			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
 			)}
