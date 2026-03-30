@@ -38,13 +38,20 @@ export function Ball({
 
 	const isMoving = useRef(false);
 
-	// 物理エンジンの速度を監視して、移動中かどうかを判定
+	// 物理エンジンの速度を監視して、移動中かどうかを判定し、低速時に強制停止させる
 	useEffect(() => {
 		let wasMoving = false;
 		const unsubscribe = api.velocity.subscribe((v) => {
 			// 速度の2乗和で判定（計算負荷軽減のため。0.001は微小な振動を無視するための閾値）
 			const speedSq = v[0] ** 2 + v[2] ** 2; //　y軸方向の速度を無視
 			const moving = speedSq > 0.001;
+
+			// 閾値を下回ったが、完全なゼロではない場合に強制的に停止させる
+			if (!moving && (v[0] !== 0 || v[2] !== 0)) {
+				api.velocity.set(0, 0, 0);
+				api.angularVelocity.set(0, 0, 0);
+			}
+
 			isMoving.current = moving;
 
 			if (moving !== wasMoving) {
@@ -54,7 +61,7 @@ export function Ball({
 		});
 
 		return () => unsubscribe();
-	}, [api.velocity, id, onMovingChange]);
+	}, [api.velocity, api.angularVelocity, id, onMovingChange]);
 
 	const { camera } = useThree();
 
