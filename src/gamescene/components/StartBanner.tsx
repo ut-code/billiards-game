@@ -1,8 +1,9 @@
 type StartBannerProps = {
 	shotCount: number;
+	remainingBalls: number;
 };
 
-export function StartBanner({ shotCount }: StartBannerProps) {
+export function StartBanner({ shotCount, remainingBalls }: StartBannerProps) {
 	return (
 		<div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden">
 			{/* 背景のフレアエフェクト */}
@@ -25,7 +26,7 @@ export function StartBanner({ shotCount }: StartBannerProps) {
 				{/* 下部の装飾ラインとサブテキスト */}
 				<div className="w-[80%] max-w-64 h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent mt-6 animate-in slide-in-from-right duration-700" />
 				<p className="text-white text-base md:text-lg font-bold tracking-[0.3em] sm:tracking-[0.4em] md:tracking-[0.6em] mt-4 drop-shadow-md animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
-					{shotCount === 0 ? "ブレイク準備完了" : "打て"}
+					{`残り${remainingBalls}ボール`}
 				</p>
 			</div>
 		</div>
