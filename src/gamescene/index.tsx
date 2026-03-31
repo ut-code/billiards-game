@@ -1,7 +1,14 @@
 import { Physics } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback, useRef, useState } from "react";
+import {
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import poolballs0 from "../assets/ballTexture/poolballs0.png";
 import poolballs1 from "../assets/ballTexture/poolballs1.png";
 import poolballs2 from "../assets/ballTexture/poolballs2.png";
@@ -12,6 +19,7 @@ import poolballs6 from "../assets/ballTexture/poolballs6.png";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { PowerGauge } from "./components/PowerGauge";
+import { StartBanner } from "./components/StartBanner";
 
 type BallConfig = {
 	id: string;
@@ -64,6 +72,33 @@ const balls: BallConfig[] = [
 export default function GameScene() {
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn | null>(null);
+	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
+	const [showRoundStart, setShowRoundStart] = useState(false);
+	const [shotCount, setShotCount] = useState(0);
+
+	// いずれかのボールが動いているか判定
+	const anyBallMoving = useMemo(
+		() => Object.values(movingBalls).some((moving) => moving),
+		[movingBalls],
+	);
+
+	// ボールが止まった瞬間にUIを表示する
+	useEffect(() => {
+		if (!anyBallMoving) {
+			setShowRoundStart(true);
+			const timer = setTimeout(() => {
+				setShowRoundStart(false);
+			}, 1000);
+			return () => clearTimeout(timer);
+		}
+	}, [anyBallMoving]);
+
+	const handleMovingChange = useCallback((id: string, isMoving: boolean) => {
+		setMovingBalls((prev) => {
+			if (prev[id] === isMoving) return prev;
+			return { ...prev, [id]: isMoving };
+		});
+	}, []);
 
 	const handleBallSelect = useCallback((shoot: ShootFn) => {
 		shootRef.current = shoot;
@@ -74,6 +109,7 @@ export default function GameScene() {
 		shootRef.current?.(power);
 		shootRef.current = null;
 		setIsCharging(false);
+		setShotCount((prev) => prev + 1);
 	}, []);
 
 	const handleCancel = useCallback(() => {
@@ -96,8 +132,11 @@ export default function GameScene() {
 								textureUrl={ball.textureUrl}
 								position={ball.position}
 								velocity={ball.velocity}
+								onMovingChange={handleMovingChange}
 								onSelect={
-									ball.shootable && !isCharging ? handleBallSelect : undefined
+									ball.shootable && !isCharging && !anyBallMoving
+										? handleBallSelect
+										: undefined
 								}
 							/>
 						))}
@@ -105,6 +144,7 @@ export default function GameScene() {
 				</Physics>
 				<OrbitControls />
 			</Canvas>
+			{showRoundStart && <StartBanner shotCount={shotCount} />}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
 			)}

@@ -62,7 +62,7 @@ function Plane({ texture }: { texture: THREE.Texture }) {
 		position: [0, -OFFSET_Y, 0], // 初期位置
 		args: [PLAY_WIDTH, PLAY_HEIGHT, PLAY_LENGTH], // 幅、高さ、長さ
 		type: "Static",
-		material: { friction: 0.1, restitution: 0 }, // 床は跳ねないように
+		material: { friction: 0.5, restitution: 0 }, // 摩擦を0.1から0.5に増加
 	}));
 
 	return (
@@ -102,7 +102,7 @@ function SideCushion({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [CUSHION_WIDTH, CUSHION_HEIGHT, SIDE_CUSHION_LENGTH],
 		type: "Static",
-		material: { friction: 0.1, restitution: 0.9 }, // クッションの反発
+		material: { friction: 0, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
 	}));
 
 	return (
@@ -134,7 +134,7 @@ function TopCushion({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_CUSHION_LENGTH, CUSHION_HEIGHT, CUSHION_WIDTH],
 		type: "Static",
-		material: { friction: 0.1, restitution: 0.9 }, // クッションの反発
+		material: { friction: 0, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
 	}));
 
 	return (
@@ -174,6 +174,7 @@ function SideRail({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [RAIL_WIDTH, RAIL_HEIGHT, SIDE_RALE_LENGTH],
 		type: "Static",
+		material: { friction: 0, restitution: 0.9 },
 	}));
 
 	return (
@@ -203,6 +204,7 @@ function TopRail({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_RAIL_LENGTH, RAIL_HEIGHT, RAIL_WIDTH],
 		type: "Static",
+		material: { friction: 0, restitution: 0.9 },
 	}));
 
 	return (
@@ -232,6 +234,7 @@ function TopOuter({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_OUTER_LENGTH, OUTER_HEIGHT, OUTER_WIDTH],
 		type: "Static",
+		material: { friction: 0, restitution: 0.9 },
 	}));
 
 	return (
@@ -261,6 +264,7 @@ function SideOuter({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [OUTER_WIDTH, OUTER_HEIGHT, SIDE_OUTER_LENGTH],
 		type: "Static",
+		material: { friction: 0, restitution: 0.9 },
 	}));
 
 	return (
