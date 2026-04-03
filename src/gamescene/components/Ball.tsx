@@ -3,9 +3,9 @@ import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
+import { BALL_RADIUS } from "../constants/physics";
 
 export type ShootFn = (power: number) => void;
-export const BALL_RADIUS = 0.04;
 
 type BallProps = {
 	id: string;

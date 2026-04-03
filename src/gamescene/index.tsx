@@ -124,41 +124,48 @@ export default function GameScene() {
 		[ballStates],
 	);
 
+	const cueRespawnPending = ballStates[CUE_BALL_ID]?.respawnNextRound ?? false;
+
+	// 停止かつキュー球のリスポーン待ち状態でリスポーンを実行
+	useEffect(() => {
+		if (anyBallMoving || !cueRespawnPending) return;
+
+		setBallStates((prev) => {
+			const cueState = prev[CUE_BALL_ID];
+			if (!cueState || !cueState.respawnNextRound) return prev;
+
+			const activeBallPositions = Object.entries(prev)
+				.filter(([id, state]) => id !== CUE_BALL_ID && state.visible)
+				.map(([id]) => ballPositionsRef.current[id]);
+
+			const respawnPosition = findCueRespawnPosition(
+				cueState.spawnPosition,
+				activeBallPositions,
+			);
+
+			ballPositionsRef.current[CUE_BALL_ID] = respawnPosition;
+
+			return {
+				...prev,
+				[CUE_BALL_ID]: {
+					...cueState,
+					visible: true,
+					respawnNextRound: false,
+					respawnVersion: cueState.respawnVersion + 1,
+				},
+			};
+		});
+	}, [anyBallMoving, cueRespawnPending]);
+
 	// ボールが止まった瞬間にUIを表示する
 	useEffect(() => {
-		if (!anyBallMoving) {
-			setBallStates((prev) => {
-				const cueState = prev[CUE_BALL_ID];
-				if (!cueState || !cueState.respawnNextRound) return prev;
+		if (anyBallMoving) return;
 
-				const activeBallPositions = Object.entries(prev)
-					.filter(([id, state]) => id !== CUE_BALL_ID && state.visible)
-					.map(([id]) => ballPositionsRef.current[id]);
-
-				const respawnPosition = findCueRespawnPosition(
-					cueState.spawnPosition,
-					activeBallPositions,
-				);
-
-				ballPositionsRef.current[CUE_BALL_ID] = respawnPosition;
-
-				return {
-					...prev,
-					[CUE_BALL_ID]: {
-						...cueState,
-						visible: true,
-						respawnNextRound: false,
-						respawnVersion: cueState.respawnVersion + 1,
-					},
-				};
-			});
-
-			setShowRoundStart(true);
-			const timer = setTimeout(() => {
-				setShowRoundStart(false);
-			}, 1000);
-			return () => clearTimeout(timer);
-		}
+		setShowRoundStart(true);
+		const timer = setTimeout(() => {
+			setShowRoundStart(false);
+		}, 1000);
+		return () => clearTimeout(timer);
 	}, [anyBallMoving]);
 
 	const handleMovingChange = useCallback((id: string, isMoving: boolean) => {

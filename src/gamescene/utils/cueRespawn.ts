@@ -1,4 +1,4 @@
-import { BALL_RADIUS } from "../components/Ball";
+import { BALL_RADIUS } from "../constants/physics";
 
 export const CUE_RESPAWN_MIN_DISTANCE = BALL_RADIUS * 2.2;
 
