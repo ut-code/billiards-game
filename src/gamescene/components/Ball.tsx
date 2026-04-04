@@ -80,7 +80,9 @@ export function Ball({
 
 			if (p[1] <= -0.22) {
 				hasPocketed.current = true;
-				onPocket?.(id);
+				requestAnimationFrame(() => {
+					onPocket?.(id);
+				});
 			}
 		});
 
