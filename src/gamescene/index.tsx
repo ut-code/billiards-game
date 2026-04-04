@@ -1,5 +1,5 @@
 import { Physics } from "@react-three/cannon";
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import {
 	Suspense,
@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import poolballs0 from "../assets/ballTexture/poolballs0.png";
 import poolballs1 from "../assets/ballTexture/poolballs1.png";
 import poolballs2 from "../assets/ballTexture/poolballs2.png";
@@ -142,6 +143,7 @@ export default function GameScene() {
 						))}
 					</Suspense>
 				</Physics>
+				<Environment files={billiardHallHdr} background />
 				<OrbitControls />
 			</Canvas>
 			{showRoundStart && <StartBanner shotCount={shotCount} />}
