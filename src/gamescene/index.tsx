@@ -123,8 +123,8 @@ export default function GameScene() {
 			<Canvas camera={{ position: [0, 5, 5], fov: 45 }} shadows>
 				<ambientLight intensity={5} />
 				<pointLight position={[10, 10, 10]} />
-				<Physics gravity={[0, -9.8, 0]}>
-					<Suspense>
+				<Suspense>
+					<Physics gravity={[0, -9.8, 0]}>
 						<BilliardTable />
 						{balls.map((ball) => (
 							<Ball
@@ -141,9 +141,9 @@ export default function GameScene() {
 								}
 							/>
 						))}
-					</Suspense>
-				</Physics>
-				<Environment files={billiardHallHdr} background />
+					</Physics>
+					<Environment files={billiardHallHdr} background />
+				</Suspense>
 				<OrbitControls />
 			</Canvas>
 			{showRoundStart && <StartBanner shotCount={shotCount} />}
