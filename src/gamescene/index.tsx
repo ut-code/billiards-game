@@ -1,5 +1,5 @@
 import { Physics } from "@react-three/cannon";
-import { Environment, OrbitControls } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import {
 	Suspense,
@@ -19,6 +19,7 @@ import poolballs5 from "../assets/ballTexture/poolballs5.png";
 import poolballs6 from "../assets/ballTexture/poolballs6.png";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
+import { CameraController } from "./components/CameraController";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
@@ -265,7 +266,7 @@ export default function GameScene() {
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
-				<OrbitControls />
+				<CameraController isCharging={isCharging} />
 			</Canvas>
 			{showRoundStart && (
 				<StartBanner
