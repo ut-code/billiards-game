@@ -2,6 +2,8 @@ import { BALL_RADIUS } from "../constants/physics";
 
 export const CUE_RESPAWN_MIN_DISTANCE = BALL_RADIUS * 2.2;
 
+const DEFAULT_CUE_RESPAWN_OFFSET = 0.2;
+
 export const cueRespawnOffsets: Array<[number, number, number]> = [
 	[0, 0, 0],
 	[0.07, 0, 0],
@@ -46,5 +48,9 @@ export function findCueRespawnPosition(
 		}
 	}
 
-	return [defaultPosition[0] + 0.2, defaultPosition[1], defaultPosition[2]];
+	return [
+		defaultPosition[0] + DEFAULT_CUE_RESPAWN_OFFSET,
+		defaultPosition[1],
+		defaultPosition[2],
+	];
 }

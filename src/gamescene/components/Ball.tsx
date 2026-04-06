@@ -4,7 +4,7 @@ import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { BALL_RADIUS } from "../constants/physics";
-
+import { POCKET_Y_THRESHOLD } from "./billiardTable";
 export type ShootFn = (power: number) => void;
 
 type BallProps = {
@@ -78,7 +78,7 @@ export function Ball({
 
 			if (hasPocketed.current) return;
 
-			if (p[1] <= -0.22) {
+			if (p[1] <= POCKET_Y_THRESHOLD) {
 				hasPocketed.current = true;
 				requestAnimationFrame(() => {
 					onPocket?.(id);
