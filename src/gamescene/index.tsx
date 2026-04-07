@@ -21,6 +21,7 @@ import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
+import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallConfig = {
 	id: string;
@@ -29,6 +30,16 @@ type BallConfig = {
 	velocity?: [number, number, number];
 	shootable?: boolean;
 };
+
+type BallState = {
+	visible: boolean;
+	pocketed: boolean;
+	respawnNextRound: boolean;
+	respawnVersion: number;
+	spawnPosition: [number, number, number];
+};
+
+const CUE_BALL_ID = "poolballs0";
 
 const balls: BallConfig[] = [
 	{
@@ -70,12 +81,38 @@ const balls: BallConfig[] = [
 	},
 ];
 
+const initialBallState = balls.reduce<Record<string, BallState>>(
+	(acc, ball) => {
+		acc[ball.id] = {
+			visible: true,
+			pocketed: false,
+			respawnNextRound: false,
+			respawnVersion: 0,
+			spawnPosition: ball.position,
+		};
+		return acc;
+	},
+	{},
+);
+
+const targetBallIds = balls
+	.filter((ball) => ball.id !== CUE_BALL_ID)
+	.map((ball) => ball.id);
+
 export default function GameScene() {
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn | null>(null);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
 	const [shotCount, setShotCount] = useState(0);
+	const [ballStates, setBallStates] =
+		useState<Record<string, BallState>>(initialBallState);
+	const ballPositionsRef = useRef<Record<string, [number, number, number]>>(
+		balls.reduce<Record<string, [number, number, number]>>((acc, ball) => {
+			acc[ball.id] = ball.position;
+			return acc;
+		}, {}),
+	);
 
 	// いずれかのボールが動いているか判定
 	const anyBallMoving = useMemo(
@@ -83,21 +120,95 @@ export default function GameScene() {
 		[movingBalls],
 	);
 
+	const remainingTargetBalls = useMemo(
+		() => targetBallIds.filter((id) => !ballStates[id]?.pocketed).length,
+		[ballStates],
+	);
+
+	const cueRespawnPending = ballStates[CUE_BALL_ID]?.respawnNextRound ?? false;
+
+	// 停止かつキュー球のリスポーン待ち状態でリスポーンを実行
+	useEffect(() => {
+		if (anyBallMoving || !cueRespawnPending) return;
+
+		setBallStates((prev) => {
+			const cueState = prev[CUE_BALL_ID];
+			if (!cueState || !cueState.respawnNextRound) return prev;
+
+			const activeBallPositions = Object.entries(prev)
+				.filter(([id, state]) => id !== CUE_BALL_ID && state.visible)
+				.map(([id]) => ballPositionsRef.current[id]);
+
+			const respawnPosition = findCueRespawnPosition(
+				cueState.spawnPosition,
+				activeBallPositions,
+			);
+
+			ballPositionsRef.current[CUE_BALL_ID] = respawnPosition;
+
+			return {
+				...prev,
+				[CUE_BALL_ID]: {
+					...cueState,
+					visible: true,
+					respawnNextRound: false,
+					respawnVersion: cueState.respawnVersion + 1,
+				},
+			};
+		});
+	}, [anyBallMoving, cueRespawnPending]);
+
 	// ボールが止まった瞬間にUIを表示する
 	useEffect(() => {
-		if (!anyBallMoving) {
-			setShowRoundStart(true);
-			const timer = setTimeout(() => {
-				setShowRoundStart(false);
-			}, 1000);
-			return () => clearTimeout(timer);
-		}
+		if (anyBallMoving) return;
+
+		setShowRoundStart(true);
+		const timer = setTimeout(() => {
+			setShowRoundStart(false);
+		}, 1000);
+		return () => clearTimeout(timer);
 	}, [anyBallMoving]);
 
 	const handleMovingChange = useCallback((id: string, isMoving: boolean) => {
 		setMovingBalls((prev) => {
 			if (prev[id] === isMoving) return prev;
 			return { ...prev, [id]: isMoving };
+		});
+	}, []);
+
+	const handlePositionChange = useCallback(
+		(id: string, position: [number, number, number]) => {
+			ballPositionsRef.current[id] = position;
+		},
+		[],
+	);
+
+	const handlePocket = useCallback((id: string) => {
+		setMovingBalls((prev) => ({ ...prev, [id]: false }));
+
+		setBallStates((prev) => {
+			const state = prev[id];
+			if (!state || !state.visible) return prev;
+
+			if (id === CUE_BALL_ID) {
+				return {
+					...prev,
+					[id]: {
+						...state,
+						visible: false,
+						respawnNextRound: true,
+					},
+				};
+			}
+
+			return {
+				...prev,
+				[id]: {
+					...state,
+					visible: false,
+					pocketed: true,
+				},
+			};
 		});
 	}, []);
 
@@ -126,27 +237,42 @@ export default function GameScene() {
 				<Suspense>
 					<Physics gravity={[0, -9.8, 0]}>
 						<BilliardTable />
-						{balls.map((ball) => (
-							<Ball
-								key={ball.id}
-								id={ball.id}
-								textureUrl={ball.textureUrl}
-								position={ball.position}
-								velocity={ball.velocity}
-								onMovingChange={handleMovingChange}
-								onSelect={
-									ball.shootable && !isCharging && !anyBallMoving
-										? handleBallSelect
-										: undefined
-								}
-							/>
-						))}
+						{balls.map((ball) => {
+							const state = ballStates[ball.id];
+							if (!state?.visible) return null;
+
+							const isRespawnedCueBall =
+								ball.id === CUE_BALL_ID && state.respawnVersion > 0;
+
+							return (
+								<Ball
+									key={`${ball.id}-${state.respawnVersion}`}
+									id={ball.id}
+									textureUrl={ball.textureUrl}
+									position={ballPositionsRef.current[ball.id]}
+									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
+									onMovingChange={handleMovingChange}
+									onPositionChange={handlePositionChange}
+									onPocket={handlePocket}
+									onSelect={
+										ball.shootable && !isCharging && !anyBallMoving
+											? handleBallSelect
+											: undefined
+									}
+								/>
+							);
+						})}
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
 				<OrbitControls />
 			</Canvas>
-			{showRoundStart && <StartBanner shotCount={shotCount} />}
+			{showRoundStart && (
+				<StartBanner
+					shotCount={shotCount}
+					remainingBalls={remainingTargetBalls}
+				/>
+			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
 			)}

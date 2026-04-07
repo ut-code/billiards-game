@@ -6,6 +6,7 @@ import woodTexture from "@/assets/tableTexture/tableWood.jpg";
 
 // 9フィートテーブルの定数 (メートル単位)
 
+export const POCKET_Y_THRESHOLD = -0.2; // ポケットに入ったとみなすy座標の閾値
 // スケーリング定数
 const SCALE = 2;
 

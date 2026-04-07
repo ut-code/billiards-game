@@ -3,7 +3,8 @@ import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
-
+import { BALL_RADIUS } from "../constants/physics";
+import { POCKET_Y_THRESHOLD } from "./billiardTable";
 export type ShootFn = (power: number) => void;
 
 type BallProps = {
@@ -13,6 +14,8 @@ type BallProps = {
 	velocity?: [number, number, number];
 	onSelect?: (shoot: ShootFn) => void;
 	onMovingChange?: (id: string, isMoving: boolean) => void;
+	onPocket?: (id: string) => void;
+	onPositionChange?: (id: string, position: [number, number, number]) => void;
 };
 
 export function Ball({
@@ -22,6 +25,8 @@ export function Ball({
 	velocity,
 	onSelect,
 	onMovingChange,
+	onPocket,
+	onPositionChange,
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
@@ -29,7 +34,7 @@ export function Ball({
 		mass: 1, // ボールに質量を設定
 		position, // 初期位置を設定 (プレイエリアの上)
 		velocity: velocity ?? [0, 0, 0],
-		args: [0.04], // ボールの半径
+		args: [BALL_RADIUS], // ボールの半径
 		type: "Dynamic",
 		material: { friction: 0.5, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
 		linearDamping: 0.4, // 移動の減衰を追加
@@ -37,6 +42,7 @@ export function Ball({
 	}));
 
 	const isMoving = useRef(false);
+	const hasPocketed = useRef(false);
 
 	// 物理エンジンの速度を監視して、移動中かどうかを判定し、低速時に強制停止させる
 	useEffect(() => {
@@ -60,8 +66,28 @@ export function Ball({
 			}
 		});
 
-		return () => unsubscribe();
+		return () => {
+			unsubscribe();
+			onMovingChange?.(id, false);
+		};
 	}, [api.velocity, api.angularVelocity, id, onMovingChange]);
+
+	useEffect(() => {
+		const unsubscribe = api.position.subscribe((p) => {
+			onPositionChange?.(id, [p[0], p[1], p[2]]);
+
+			if (hasPocketed.current) return;
+
+			if (p[1] <= POCKET_Y_THRESHOLD) {
+				hasPocketed.current = true;
+				requestAnimationFrame(() => {
+					onPocket?.(id);
+				});
+			}
+		});
+
+		return () => unsubscribe();
+	}, [api.position, id, onPocket, onPositionChange]);
 
 	const { camera } = useThree();
 
@@ -95,7 +121,7 @@ export function Ball({
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: mesh is a React Three Fiber 3D element, not an HTML element
 		<mesh ref={ref} name={id} onClick={handleClick}>
-			<sphereGeometry args={[0.04, 32, 32]} />
+			<sphereGeometry args={[BALL_RADIUS, 32, 32]} />
 			<meshStandardMaterial map={texture} roughness={0.1} metalness={0.5} />
 		</mesh>
 	);
