@@ -96,6 +96,7 @@ export function Ball({
 	useEffect(() => {
 		if (!respawnPosition) return;
 
+		hasPocketed.current = false;
 		api.position.set(...respawnPosition);
 		api.velocity.set(0, 0, 0);
 		api.angularVelocity.set(0, 0, 0);
