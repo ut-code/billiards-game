@@ -240,18 +240,18 @@ export default function GameScene() {
 						<BilliardTable />
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
-							if (!state?.visible) return null;
 
 							const isRespawnedCueBall =
 								ball.id === CUE_BALL_ID && state.respawnVersion > 0;
 
 							return (
 								<Ball
-									key={`${ball.id}-${state.respawnVersion}`}
+									key={ball.id}
 									id={ball.id}
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
+									isVisible={state.visible}
 									onMovingChange={handleMovingChange}
 									onPositionChange={handlePositionChange}
 									onPocket={handlePocket}
