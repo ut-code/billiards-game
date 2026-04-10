@@ -12,6 +12,7 @@ type BallProps = {
 	textureUrl: string;
 	position: [number, number, number];
 	velocity?: [number, number, number];
+	respawnPosition?: [number, number, number];
 	isVisible: boolean;
 	onSelect?: (shoot: ShootFn) => void;
 	onMovingChange?: (id: string, isMoving: boolean) => void;
@@ -24,6 +25,7 @@ export function Ball({
 	textureUrl,
 	position,
 	velocity,
+	respawnPosition,
 	isVisible,
 	onSelect,
 	onMovingChange,
@@ -90,6 +92,19 @@ export function Ball({
 
 		return () => unsubscribe();
 	}, [api.position, id, onPocket, onPositionChange]);
+
+	useEffect(() => {
+		if (!respawnPosition) return;
+
+		api.position.set(...respawnPosition);
+		api.velocity.set(0, 0, 0);
+		api.angularVelocity.set(0, 0, 0);
+	}, [
+		respawnPosition,
+		api.position.set,
+		api.velocity.set,
+		api.angularVelocity.set,
+	]);
 
 	const { camera } = useThree();
 

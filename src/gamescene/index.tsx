@@ -38,6 +38,7 @@ type BallState = {
 	respawnNextRound: boolean;
 	respawnVersion: number;
 	spawnPosition: [number, number, number];
+	respawnPosition?: [number, number, number];
 };
 
 const CUE_BALL_ID = "poolballs0";
@@ -154,6 +155,7 @@ export default function GameScene() {
 					visible: true,
 					respawnNextRound: false,
 					respawnVersion: cueState.respawnVersion + 1,
+					respawnPosition,
 				},
 			};
 		});
@@ -251,6 +253,9 @@ export default function GameScene() {
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
+									respawnPosition={
+										ball.id === CUE_BALL_ID ? state.respawnPosition : undefined
+									}
 									isVisible={state.visible}
 									onMovingChange={handleMovingChange}
 									onPositionChange={handlePositionChange}
