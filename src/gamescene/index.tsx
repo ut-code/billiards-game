@@ -295,7 +295,7 @@ export default function GameScene() {
 							const state = ballStates[ball.id];
 
 							const isRespawnedCueBall =
-								ball.id === cueBallId && state.respawnVersion > 0;
+								ball.id === cueBallId && (state?.respawnVersion ?? 0) > 0;
 
 							return (
 								<Ball
@@ -305,9 +305,9 @@ export default function GameScene() {
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									respawnPosition={
-										ball.id === CUE_BALL_ID ? state.respawnPosition : undefined
+										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
-									isVisible={state.visible}
+									isVisible={state?.visible ?? true}
 									onMovingChange={handleMovingChange}
 									onPositionChange={handlePositionChange}
 									onPocket={handlePocket}
