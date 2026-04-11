@@ -38,6 +38,7 @@ type BallState = {
 	respawnNextRound: boolean;
 	respawnVersion: number;
 	spawnPosition: [number, number, number];
+	respawnPosition?: [number, number, number];
 };
 
 const CUE_BALL_ID = "poolballs0";
@@ -154,6 +155,7 @@ export default function GameScene() {
 					visible: true,
 					respawnNextRound: false,
 					respawnVersion: cueState.respawnVersion + 1,
+					respawnPosition,
 				},
 			};
 		});
@@ -240,18 +242,21 @@ export default function GameScene() {
 						<BilliardTable />
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
-							if (!state?.visible) return null;
 
 							const isRespawnedCueBall =
 								ball.id === CUE_BALL_ID && state.respawnVersion > 0;
 
 							return (
 								<Ball
-									key={`${ball.id}-${state.respawnVersion}`}
+									key={ball.id}
 									id={ball.id}
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
+									respawnPosition={
+										ball.id === CUE_BALL_ID ? state.respawnPosition : undefined
+									}
+									isVisible={state.visible}
 									onMovingChange={handleMovingChange}
 									onPositionChange={handlePositionChange}
 									onPocket={handlePocket}
