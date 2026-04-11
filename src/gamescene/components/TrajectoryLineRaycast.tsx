@@ -3,9 +3,13 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { BALL_RADIUS } from "../constants/physics";
 
-const LINE_Y = 0.05;
+const DOT_Y = 0.05;
 const MAX_DISTANCE = 100;
 const COLLISION_RADIUS = BALL_RADIUS * 2;
+const DOT_SPACING = 0.08;
+const DOT_SIZE = 3;
+const MAX_DOTS = 128;
+const DOT_START_OFFSET = BALL_RADIUS * 1.5;
 
 /**
  * レイ(origin, direction)と円(center, radius)の交差判定。
@@ -47,37 +51,40 @@ export function TrajectoryLineRaycast({
 	visibleBallIds,
 	visible,
 }: TrajectoryLineRaycastProps) {
-	const lineRef = useRef<THREE.Line>(null);
+	const pointsRef = useRef<THREE.Points>(null);
 	const raycaster = useMemo(() => new THREE.Raycaster(), []);
 	const workDirection = useMemo(() => new THREE.Vector3(), []);
 	const workOrigin = useMemo(() => new THREE.Vector3(), []);
 
-	const lineObject = useMemo(() => {
+	const pointsObject = useMemo(() => {
 		const geom = new THREE.BufferGeometry();
-		const positions = new Float32Array(2 * 3);
+		const positions = new Float32Array(MAX_DOTS * 3);
 		geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 		geom.setDrawRange(0, 0);
-		const mat = new THREE.LineBasicMaterial({
+		const mat = new THREE.PointsMaterial({
 			color: 0xffffff,
-			linewidth: 2,
+			size: DOT_SIZE,
+			sizeAttenuation: false,
+			transparent: true,
+			opacity: 0.9,
 		});
-		const line = new THREE.Line(geom, mat);
-		line.raycast = () => {};
-		return line;
+		const points = new THREE.Points(geom, mat);
+		points.raycast = () => {};
+		return points;
 	}, []);
 
 	useFrame(({ camera, scene }) => {
-		const line = lineRef.current;
-		if (!line) return;
+		const points = pointsRef.current;
+		if (!points) return;
 
 		if (!visible) {
-			line.visible = false;
+			points.visible = false;
 			return;
 		}
 
 		const ballPos = ballPositionRef.current?.[cueBallId];
 		if (!ballPos) {
-			line.visible = false;
+			points.visible = false;
 			return;
 		}
 
@@ -85,7 +92,7 @@ export function TrajectoryLineRaycast({
 		const dirZ = ballPos[2] - camera.position.z;
 		const len = Math.sqrt(dirX * dirX + dirZ * dirZ);
 		if (len < 1e-6) {
-			line.visible = false;
+			points.visible = false;
 			return;
 		}
 
@@ -139,23 +146,28 @@ export function TrajectoryLineRaycast({
 			}
 		}
 
-		// 始点(キュー球)→終点(最も近い衝突点)の2頂点でラインバッファを更新し、
-		// needsUpdate で GPU への再アップロードを要求する
-		const geom = lineObject.geometry;
+		// キュー球から衝突点まで等間隔にドットを配置
+		const geom = pointsObject.geometry;
 		const attr = geom.getAttribute("position");
 		const arr = attr.array;
 
-		arr[0] = ballPos[0];
-		arr[1] = LINE_Y;
-		arr[2] = ballPos[2];
-		arr[3] = ballPos[0] + dx * minDist;
-		arr[4] = LINE_Y;
-		arr[5] = ballPos[2] + dz * minDist;
+		let dotCount = 0;
+		for (
+			let d = DOT_START_OFFSET;
+			d < minDist && dotCount < MAX_DOTS;
+			d += DOT_SPACING
+		) {
+			const idx = dotCount * 3;
+			arr[idx] = ballPos[0] + dx * d;
+			arr[idx + 1] = DOT_Y;
+			arr[idx + 2] = ballPos[2] + dz * d;
+			dotCount++;
+		}
 
 		attr.needsUpdate = true;
-		geom.setDrawRange(0, 2);
-		line.visible = true;
+		geom.setDrawRange(0, dotCount);
+		points.visible = true;
 	});
 
-	return <primitive object={lineObject} ref={lineRef} />;
+	return <primitive object={pointsObject} ref={pointsRef} />;
 }
