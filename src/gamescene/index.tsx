@@ -305,7 +305,7 @@ export default function GameScene() {
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									respawnPosition={
-										ball.id === CUE_BALL_ID ? state.respawnPosition : undefined
+										ball.id === cueBallId ? state.respawnPosition : undefined
 									}
 									isVisible={state.visible}
 									onMovingChange={handleMovingChange}
