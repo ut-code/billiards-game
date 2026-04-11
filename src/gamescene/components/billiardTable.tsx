@@ -175,7 +175,7 @@ function SideRail({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [RAIL_WIDTH, RAIL_HEIGHT, SIDE_RALE_LENGTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 },
+		material: { friction: 0, restitution: 0.1 },
 	}));
 
 	return (
@@ -205,7 +205,7 @@ function TopRail({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_RAIL_LENGTH, RAIL_HEIGHT, RAIL_WIDTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 },
+		material: { friction: 0, restitution: 0.1 },
 	}));
 
 	return (
@@ -235,7 +235,7 @@ function TopOuter({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_OUTER_LENGTH, OUTER_HEIGHT, OUTER_WIDTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 },
+		material: { friction: 0, restitution: 0.1 },
 	}));
 
 	return (
@@ -265,7 +265,7 @@ function SideOuter({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [OUTER_WIDTH, OUTER_HEIGHT, SIDE_OUTER_LENGTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 },
+		material: { friction: 0, restitution: 0.1 },
 	}));
 
 	return (
