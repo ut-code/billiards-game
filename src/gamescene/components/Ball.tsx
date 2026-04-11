@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { BALL_RADIUS } from "../constants/physics";
 import { POCKET_Y_THRESHOLD } from "./billiardTable";
-export type ShootFn = (power: number) => void;
+export type ShootFn = (power: number) => boolean;
 
 type BallProps = {
 	id: string;
@@ -95,7 +95,7 @@ export function Ball({
 		if (!onSelect || isMoving.current) return;
 
 		onSelect((power: number) => {
-			if (!ref.current) return;
+			if (!ref.current) return false;
 
 			const ballPosition = new THREE.Vector3();
 			ref.current.getWorldPosition(ballPosition);
@@ -107,7 +107,7 @@ export function Ball({
 			direction.y = 0; // 水平方向のみにする
 
 			// カメラが真上の場合など、XZ成分が0に近い場合はショットしない
-			if (direction.lengthSq() < 1e-6) return;
+			if (direction.lengthSq() < 1e-6) return false;
 
 			direction.normalize();
 
@@ -115,6 +115,8 @@ export function Ball({
 				[direction.x * power, 0.0, direction.z * power],
 				[ballPosition.x, ballPosition.y, ballPosition.z], // 力を加える位置（ボールの中心）
 			);
+
+			return true;
 		});
 	}, [onSelect, ref, camera, api]);
 
