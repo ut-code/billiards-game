@@ -22,6 +22,7 @@ import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
+import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallConfig = {
@@ -267,6 +268,16 @@ export default function GameScene() {
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
 				<CameraController isCharging={isCharging} />
+				<TrajectoryLineRaycast
+					ballPositionRef={ballPositionsRef}
+					cueBallId={CUE_BALL_ID}
+					visibleBallIds={balls
+						.filter((b) => b.id !== CUE_BALL_ID && ballStates[b.id]?.visible)
+						.map((b) => b.id)}
+					visible={
+						!anyBallMoving && (ballStates[CUE_BALL_ID]?.visible ?? false)
+					}
+				/>
 			</Canvas>
 			{showRoundStart && (
 				<StartBanner
