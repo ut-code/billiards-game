@@ -40,7 +40,7 @@ export function Ball({
 		velocity: velocity ?? [0, 0, 0],
 		args: [BALL_RADIUS], // ボールの半径
 		type: "Dynamic",
-		material: { friction: 0.5, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
+		material: { friction: 0.1, restitution: 1 }, // 摩擦を0.1から0.5に増加
 		linearDamping: 0.4, // 移動の減衰を追加
 		angularDamping: 0.4, // 回転の減衰を追加
 	}));

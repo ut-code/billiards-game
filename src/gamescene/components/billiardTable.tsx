@@ -52,24 +52,29 @@ const OUTER_Y = RAIL_HEIGHT / 2 - OFFSET_Y;
 
 type Pos = { X: number; Y: number; Z: number };
 type TableMaterialProps = { position: Pos; texture: THREE.Texture };
+type PlaneProps = {
+	texture: THREE.Texture;
+	floorFriction: number;
+	planeColor: string;
+};
 
 useTexture.preload(clothTexture);
 useTexture.preload(woodTexture);
 
-function Plane({ texture }: { texture: THREE.Texture }) {
-	// useBoxフックで物理演算を追加
+function Plane({ texture, floorFriction, planeColor }: PlaneProps) {
+	// Planeは台面
 	const [ref] = useBox(() => ({
 		mass: 0, // 質量0にすることで、動かない固定された物体にする
 		position: [0, -OFFSET_Y, 0], // 初期位置
 		args: [PLAY_WIDTH, PLAY_HEIGHT, PLAY_LENGTH], // 幅、高さ、長さ
 		type: "Static",
-		material: { friction: 0.5, restitution: 0 }, // 摩擦を0.1から0.5に増加
+		material: { friction: floorFriction, restitution: 0 },
 	}));
 
 	return (
 		<mesh ref={ref}>
 			<boxGeometry args={[PLAY_WIDTH, PLAY_HEIGHT, PLAY_LENGTH]} />
-			<meshStandardMaterial map={texture} color="#006633" />
+			<meshStandardMaterial map={texture} color={planeColor} />
 		</mesh>
 	);
 }
@@ -103,7 +108,7 @@ function SideCushion({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [CUSHION_WIDTH, CUSHION_HEIGHT, SIDE_CUSHION_LENGTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
+		material: { friction: 0, restitution: 1 }, // 摩擦を0.1から0.5に増加
 	}));
 
 	return (
@@ -135,7 +140,7 @@ function TopCushion({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_CUSHION_LENGTH, CUSHION_HEIGHT, CUSHION_WIDTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
+		material: { friction: 0, restitution: 1 }, // 摩擦を0.1から0.5に増加
 	}));
 
 	return (
@@ -356,12 +361,26 @@ function TopTableBottom({ position, texture }: TableMaterialProps) {
 	);
 }
 
-export function BilliardTable() {
-	const cloth = useTexture(clothTexture);
+type BilliardTableProps = {
+	surfaceTextureUrl?: string;
+	floorFriction?: number;
+	planeColor?: string;
+};
+
+export function BilliardTable({
+	surfaceTextureUrl,
+	floorFriction = 0.5,
+	planeColor = "#006633",
+}: BilliardTableProps) {
+	const cloth = useTexture(surfaceTextureUrl ?? clothTexture);
 	const wood = useTexture(woodTexture);
 	return (
 		<>
-			<Plane texture={cloth} />
+			<Plane
+				texture={cloth}
+				floorFriction={floorFriction}
+				planeColor={planeColor}
+			/>
 			{SideCushionPos.map((pos) => {
 				return (
 					<SideCushion

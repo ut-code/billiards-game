@@ -1,1 +1,1 @@
-export const BALL_RADIUS = 0.04;
+export const BALL_RADIUS = 0.06;

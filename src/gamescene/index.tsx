@@ -290,7 +290,11 @@ export default function GameScene() {
 				<pointLight position={[10, 10, 10]} />
 				<Suspense>
 					<Physics gravity={[0, -9.8, 0]}>
-						<BilliardTable />
+						<BilliardTable
+							surfaceTextureUrl={level.table?.clothTextureUrl}
+							floorFriction={level.table?.floorFriction}
+							planeColor={level.table?.planeColor}
+						/>
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
 
