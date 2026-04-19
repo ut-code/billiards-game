@@ -11,7 +11,7 @@ export function PowerGauge({
 	onConfirm,
 	onCancel,
 	minForce = 1.0,
-	maxForce = 5.0,
+	maxForce = 10.0,
 }: PowerGaugeProps) {
 	const [power, setPower] = useState(0);
 	const animationRef = useRef<number>(0);

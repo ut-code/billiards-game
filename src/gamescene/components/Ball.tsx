@@ -131,7 +131,7 @@ export function Ball({
 
 			api.applyImpulse(
 				[direction.x * power, 0.0, direction.z * power],
-				[ballPosition.x, ballPosition.y, ballPosition.z], // 力を加える位置（ボールの中心）
+				[0, 0, 0], // ボール中心（相対座標）に力を加える
 			);
 
 			return true;
