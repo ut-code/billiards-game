@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type PowerGaugeProps = {
-	onConfirm: (power: number) => void;
+	onConfirm: (power: number, normalizedPower: number) => void;
 	onCancel: () => void;
+	onPowerChange?: (normalizedPower: number) => void;
 	minForce?: number;
 	maxForce?: number;
 };
@@ -10,6 +11,7 @@ type PowerGaugeProps = {
 export function PowerGauge({
 	onConfirm,
 	onCancel,
+	onPowerChange,
 	minForce = 1.0,
 	maxForce = 10.0,
 }: PowerGaugeProps) {
@@ -33,16 +35,20 @@ export function PowerGauge({
 					directionRef.current = 1;
 				}
 				setPower(powerRef.current);
+				onPowerChange?.(powerRef.current);
 			}
 			prevTimeRef.current = timestamp;
 			animationRef.current = requestAnimationFrame(animate);
 		};
 		animationRef.current = requestAnimationFrame(animate);
 		return () => cancelAnimationFrame(animationRef.current);
-	}, []);
+	}, [onPowerChange]);
 
 	const handleConfirm = useCallback(() => {
-		onConfirm(minForce + powerRef.current * (maxForce - minForce));
+		onConfirm(
+			minForce + powerRef.current * (maxForce - minForce),
+			powerRef.current,
+		);
 	}, [onConfirm, minForce, maxForce]);
 
 	useEffect(() => {
