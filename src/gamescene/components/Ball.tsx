@@ -47,7 +47,7 @@ export function Ball({
 		onCollide: (e) => {
 			console.log(e);
 			const audio1 = new Audio("/maou_se_sound_footstep02.mp3");
-			const audio2 = new Audio("/maou_se_system44.mp3");
+			const audio2 = new Audio("/collision_with_balls.mp3");
 			audio1.volume = 1;
 			audio2.volume = 1;
 			if (e.body.userData.type === "cushion") audio1.play();
