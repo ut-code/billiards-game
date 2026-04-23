@@ -15,6 +15,8 @@ import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
 import { PortalPair } from "./components/PortalPair";
+import { BlockProvider } from "./components/FillerContextProvider";
+import { GateSwitch } from "./components/GateSwitch";
 import { HoleFiller } from "./components/HoleFiller";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
@@ -298,7 +300,12 @@ export default function GameScene() {
 							floorFriction={level.table?.floorFriction}
 							planeColor={level.table?.planeColor}
 						/>
-						<HoleFiller />
+						{/* BlockProviderがあるとき、ポケットが埋まる */}
+						<BlockProvider>
+							<HoleFiller />
+							<GateSwitch />
+						</BlockProvider>
+
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
 

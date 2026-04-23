@@ -1,5 +1,6 @@
 import { useBox } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
+import { useEffect } from "react";
 import type * as THREE from "three";
 import clothTexture from "@/assets/tableTexture/tableCloth.jpg";
 import {
@@ -10,6 +11,7 @@ import {
 	TABLE_BOTTOM_HEIGHT,
 	TABLE_BOTTOM_WIDTH,
 } from "./billiardTable";
+import { useBlock } from "./FillerContextProvider";
 
 type Pos = { X: number; Y: number; Z: number };
 type TableMaterialProps = { position: Pos; texture: THREE.Texture };
@@ -28,7 +30,8 @@ const SideHoleFillerPos = [
 ];
 
 function SideHoleFiller({ position, texture }: TableMaterialProps) {
-	const [ref, _api] = useBox(() => ({
+	const { isAllHidden } = useBlock();
+	const [ref, api] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
 		args: [TABLE_BOTTOM_WIDTH, TABLE_BOTTOM_HEIGHT, SIDE_POCKET_SIZE],
@@ -36,8 +39,12 @@ function SideHoleFiller({ position, texture }: TableMaterialProps) {
 		material: { friction: 0.5, restitution: 0 },
 	}));
 
+	useEffect(() => {
+		api.collisionFilterMask.set(isAllHidden ? 0 : 1);
+	}, [isAllHidden, api.collisionFilterMask.set]);
+
 	return (
-		<mesh ref={ref} rotation={[0, 0, 0]}>
+		<mesh ref={ref} rotation={[0, 0, 0]} visible={!isAllHidden}>
 			<boxGeometry
 				args={[TABLE_BOTTOM_WIDTH, TABLE_BOTTOM_HEIGHT, SIDE_POCKET_SIZE]}
 			/>
@@ -70,7 +77,8 @@ const CornerHoleFillerPos = [
 ];
 
 function CornerHoleFiller({ position, texture }: TableMaterialProps) {
-	const [ref, _api] = useBox(() => ({
+	const { isAllHidden } = useBlock();
+	const [ref, api] = useBox(() => ({
 		mass: 0,
 		position: [position.X, position.Y, position.Z],
 		args: [TABLE_BOTTOM_WIDTH, TABLE_BOTTOM_HEIGHT, TABLE_BOTTOM_WIDTH],
@@ -78,8 +86,12 @@ function CornerHoleFiller({ position, texture }: TableMaterialProps) {
 		material: { friction: 0.5, restitution: 0 },
 	}));
 
+	useEffect(() => {
+		api.collisionFilterMask.set(isAllHidden ? 0 : 1);
+	}, [isAllHidden, api.collisionFilterMask.set]);
+
 	return (
-		<mesh ref={ref} rotation={[0, 0, 0]}>
+		<mesh ref={ref} rotation={[0, 0, 0]} visible={!isAllHidden}>
 			<boxGeometry
 				args={[TABLE_BOTTOM_WIDTH, TABLE_BOTTOM_HEIGHT, TABLE_BOTTOM_WIDTH]}
 			/>

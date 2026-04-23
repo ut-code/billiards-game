@@ -13,7 +13,7 @@ const SCALE = 2;
 // クッションに囲まれた台面の広さ
 export const PLAY_WIDTH = 1.27 * SCALE;
 export const PLAY_LENGTH = 2.54 * SCALE;
-const PLAY_HEIGHT = 0.1 * SCALE;
+export const PLAY_HEIGHT = 0.1 * SCALE;
 
 // 以下、台面の長い方に面する方をSIDE, 短い方に面する方をTOPとする。
 
