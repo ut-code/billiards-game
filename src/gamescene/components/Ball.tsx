@@ -40,7 +40,7 @@ export function Ball({
 		velocity: velocity ?? [0, 0, 0],
 		args: [BALL_RADIUS], // ボールの半径
 		type: "Dynamic",
-		material: { friction: 0.5, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
+		material: { friction: 0.1, restitution: 1 }, // 摩擦を0.1から0.5に増加
 		linearDamping: 0.4, // 移動の減衰を追加
 		angularDamping: 0.4, // 回転の減衰を追加
 		userData: { type: "ball" },
@@ -49,7 +49,7 @@ export function Ball({
 			const audio1 = new Audio("/maou_se_sound_footstep02.mp3");
 			const audio2 = new Audio("/collision_with_balls.mp3");
 			audio1.volume = 1;
-			audio2.volume = 1;
+			audio2.volume = 0.2;
 			if (e.body.userData.type === "cushion") audio1.play();
 			if (e.body.userData.type === "ball") audio2.play();
 		},
