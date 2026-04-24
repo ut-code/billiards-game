@@ -43,6 +43,16 @@ export function Ball({
 		material: { friction: 0.1, restitution: 1 }, // 摩擦を0.1から0.5に増加
 		linearDamping: 0.4, // 移動の減衰を追加
 		angularDamping: 0.4, // 回転の減衰を追加
+		userData: { type: "ball" },
+		onCollide: (e) => {
+			console.log(e);
+			const audio1 = new Audio("/maou_se_sound_footstep02.mp3");
+			const audio2 = new Audio("/collision_with_balls.mp3");
+			audio1.volume = 1;
+			audio2.volume = 1;
+			if (e.body.userData.type === "cushion") audio1.play();
+			if (e.body.userData.type === "ball") audio2.play();
+		},
 	}));
 
 	const isMoving = useRef(false);
@@ -131,7 +141,7 @@ export function Ball({
 
 			api.applyImpulse(
 				[direction.x * power, 0.0, direction.z * power],
-				[ballPosition.x, ballPosition.y, ballPosition.z], // 力を加える位置（ボールの中心）
+				[0, 0, 0], // ボール中心（相対座標）に力を加える
 			);
 
 			return true;

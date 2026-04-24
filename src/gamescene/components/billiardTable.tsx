@@ -109,6 +109,7 @@ function SideCushion({ position, texture }: TableMaterialProps) {
 		args: [CUSHION_WIDTH, CUSHION_HEIGHT, SIDE_CUSHION_LENGTH],
 		type: "Static",
 		material: { friction: 0, restitution: 1 }, // 摩擦を0.1から0.5に増加
+		userData: { type: "cushion" },
 	}));
 
 	return (
@@ -141,6 +142,7 @@ function TopCushion({ position, texture }: TableMaterialProps) {
 		args: [TOP_CUSHION_LENGTH, CUSHION_HEIGHT, CUSHION_WIDTH],
 		type: "Static",
 		material: { friction: 0, restitution: 1 }, // 摩擦を0.1から0.5に増加
+		userData: { type: "cushion" },
 	}));
 
 	return (
