@@ -4,6 +4,13 @@ import poolballs2 from "@/assets/ballTexture/poolballs2.png";
 import poolballs3 from "@/assets/ballTexture/poolballs3.png";
 import poolballs4 from "@/assets/ballTexture/poolballs4.png";
 import tableIce from "@/assets/tableTexture/tableIce.svg";
+import {
+	OFFSET_Y,
+	PLAY_HEIGHT,
+	PLAY_LENGTH,
+} from "../components/billiardTable";
+import { SWITCH_SIZE } from "../components/GateSwitch";
+
 export type BallSpawnConfig = {
 	id: string;
 	textureUrl: string;
@@ -18,6 +25,11 @@ export type PortalConfig = {
 	radius?: number;
 };
 
+export type GateConfig = {
+	gateEn: boolean;
+	gatePos: [number, number, number][];
+};
+
 export type LevelConfig = {
 	id: string;
 	name: string;
@@ -30,6 +42,7 @@ export type LevelConfig = {
 		floorFriction?: number;
 		planeColor?: string;
 	};
+	gate?: GateConfig;
 	balls: BallSpawnConfig[];
 };
 
@@ -131,6 +144,43 @@ export const LEVELS: LevelConfig[] = [
 				id: "poolballs4",
 				textureUrl: poolballs4,
 				position: [0.52, 0.2, 0],
+			},
+		],
+	},
+	{
+		id: "level4",
+		name: "Level 4 - Switch Gate",
+		description: "3球を10打以内に落とす",
+		shotLimit: 10,
+		cueBallId: "poolballs0",
+		gate: {
+			gateEn: true,
+			gatePos: [
+				[0, (PLAY_HEIGHT + SWITCH_SIZE[1]) / 2 - OFFSET_Y, PLAY_LENGTH / 4],
+				[0, (PLAY_HEIGHT + SWITCH_SIZE[1]) / 2 - OFFSET_Y, -PLAY_LENGTH / 4],
+			],
+		},
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.6, 0.2, 0], //長辺がz軸、短辺がx軸
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0.4, 0.2, 0.4],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [-0.4, 0.2, 0.4],
+			},
+			{
+				id: "poolballs3",
+				textureUrl: poolballs3,
+				position: [0, 0.2, -0.4],
 			},
 		],
 	},

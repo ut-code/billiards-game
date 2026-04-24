@@ -1,10 +1,10 @@
 import { useBox } from "@react-three/cannon";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
-import { OFFSET_Y, PLAY_HEIGHT, PLAY_WIDTH } from "./billiardTable";
+import { PLAY_HEIGHT, PLAY_WIDTH } from "./billiardTable";
 import { useBlock } from "./FillerContextProvider";
 
-const SWITCH_SIZE: [number, number, number] = [
+export const SWITCH_SIZE: [number, number, number] = [
 	PLAY_HEIGHT / 2,
 	3 * PLAY_HEIGHT,
 	PLAY_HEIGHT / 2,
@@ -14,7 +14,7 @@ const MOVE_SPEED = 0.5; // 移動速度
 const IMPACT_THRESHOLD = 2.0; // 発火に必要な最低速度
 const RESET_DELAY = 60000; // 元に戻るまでの時間 (ms)
 
-export function GateSwitch() {
+export function GateSwitch({ pos }: { pos: [number, number, number] }) {
 	const { isAllHidden, hideAll, resetBlocks } = useBlock();
 	const [isActive, setIsActive] = useState(false); // 見た目の変化用
 	const isProcessingRef = useRef(false); // 連打防止用フラグ
@@ -22,7 +22,8 @@ export function GateSwitch() {
 	const [ref, api] = useBox(() => ({
 		type: "Kinematic", // 質量を持たず、プログラムから制御する
 		args: SWITCH_SIZE,
-		position: [0, (PLAY_HEIGHT + SWITCH_SIZE[1]) / 2 - OFFSET_Y, 1],
+		//position: [0, (PLAY_HEIGHT + SWITCH_SIZE[1]) / 2 - OFFSET_Y, 1],
+		position: pos,
 		onCollide: (e) => {
 			// すでに処理中、または速度が足りない場合は無視
 			if (
@@ -53,12 +54,12 @@ export function GateSwitch() {
 	useFrame((state) => {
 		const t = state.clock.getElapsedTime();
 		// X座標を Sine 波で計算 (左右に往復)
-		const x = Math.sin(t * MOVE_SPEED) * MOVE_RANGE;
+		const offsetX = Math.sin(t * MOVE_SPEED) * MOVE_RANGE;
 
 		// api.position.set を使い物理エンジンに現在の位置を教える
 		// Kinematic なので、Dynamic なボールに「弾き飛ばされる」ことはないが
 		// ボールを「押し退ける」力は働く
-		api.position.set(x, (PLAY_HEIGHT + SWITCH_SIZE[1]) / 2 - OFFSET_Y, 1);
+		api.position.set(pos[0] + offsetX, pos[1], pos[2]);
 	});
 
 	useEffect(() => {

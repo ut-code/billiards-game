@@ -301,10 +301,14 @@ export default function GameScene() {
 							planeColor={level.table?.planeColor}
 						/>
 						{/* BlockProviderがあるとき、ポケットが埋まる */}
-						<BlockProvider>
-							<HoleFiller />
-							<GateSwitch />
-						</BlockProvider>
+						{level.gate?.gateEn && (
+							<BlockProvider>
+								<HoleFiller />
+								{level.gate.gatePos.map((pos) => (
+									<GateSwitch pos={pos} key={`${pos[0]}-${pos[1]}-${pos[2]}`} />
+								))}
+							</BlockProvider>
+						)}
 
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
