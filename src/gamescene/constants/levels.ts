@@ -151,7 +151,7 @@ export const LEVELS: LevelConfig[] = [
 		id: "level4",
 		name: "Level 4 - Switch Gate",
 		description: "3球を10打以内に落とす",
-		shotLimit: 10,
+		shotLimit: 15,
 		cueBallId: "poolballs0",
 		gate: {
 			gateEn: true,

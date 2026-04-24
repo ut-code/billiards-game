@@ -1,13 +1,13 @@
 import { useBox } from "@react-three/cannon";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { PLAY_HEIGHT, PLAY_WIDTH } from "./billiardTable";
 import { useBlock } from "./FillerContextProvider";
 
 export const SWITCH_SIZE: [number, number, number] = [
-	PLAY_HEIGHT / 2,
+	PLAY_HEIGHT,
 	3 * PLAY_HEIGHT,
-	PLAY_HEIGHT / 2,
+	PLAY_HEIGHT,
 ];
 const MOVE_RANGE = PLAY_WIDTH / 4; // 左右の移動幅
 const MOVE_SPEED = 0.5; // 移動速度
@@ -15,9 +15,14 @@ const IMPACT_THRESHOLD = 2.0; // 発火に必要な最低速度
 const RESET_DELAY = 60000; // 元に戻るまでの時間 (ms)
 
 export function GateSwitch({ pos }: { pos: [number, number, number] }) {
-	const { isAllHidden, hideAll, resetBlocks } = useBlock();
-	const [isActive, setIsActive] = useState(false); // 見た目の変化用
-	const isProcessingRef = useRef(false); // 連打防止用フラグ
+	const {
+		isAllHidden,
+		hideAll,
+		resetBlocks,
+		isProcessing,
+		startProcessing,
+		stopProcessing,
+	} = useBlock();
 
 	const [ref, api] = useBox(() => ({
 		type: "Kinematic", // 質量を持たず、プログラムから制御する
@@ -26,10 +31,7 @@ export function GateSwitch({ pos }: { pos: [number, number, number] }) {
 		position: pos,
 		onCollide: (e) => {
 			// すでに処理中、または速度が足りない場合は無視
-			if (
-				isProcessingRef.current ||
-				e.contact.impactVelocity < IMPACT_THRESHOLD
-			) {
+			if (isProcessing || e.contact.impactVelocity < IMPACT_THRESHOLD) {
 				return;
 			}
 
@@ -38,15 +40,13 @@ export function GateSwitch({ pos }: { pos: [number, number, number] }) {
 	}));
 
 	const handleTrigger = () => {
-		isProcessingRef.current = true;
-		setIsActive(true);
+		startProcessing();
 		hideAll(); // ポケットを開ける
 
 		// 一定時間後にリセット
 		setTimeout(() => {
 			resetBlocks();
-			setIsActive(false);
-			isProcessingRef.current = false;
+			stopProcessing();
 		}, RESET_DELAY);
 	};
 
@@ -70,8 +70,8 @@ export function GateSwitch({ pos }: { pos: [number, number, number] }) {
 		<mesh ref={ref}>
 			<boxGeometry args={SWITCH_SIZE} />
 			<meshStandardMaterial
-				color={isActive ? "#ff0000" : "#ffaa00"}
-				emissive={isActive ? "#440000" : "#000000"}
+				color={isAllHidden ? "#ff0000" : "#ffaa00"}
+				emissive={isAllHidden ? "#440000" : "#000000"}
 			/>
 		</mesh>
 	);
