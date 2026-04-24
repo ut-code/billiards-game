@@ -49,7 +49,7 @@ export function Ball({
 			const audio1 = new Audio("/maou_se_sound_footstep02.mp3");
 			const audio2 = new Audio("/collision_with_balls.mp3");
 			audio1.volume = 1;
-			audio2.volume = 1;
+			audio2.volume = 0.2;
 			if (e.body.userData.type === "cushion") audio1.play();
 			if (e.body.userData.type === "ball") audio2.play();
 		},
