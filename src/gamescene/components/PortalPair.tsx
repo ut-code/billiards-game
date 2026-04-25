@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import type { PortalConfig } from "../constants/levels";
 
@@ -26,6 +26,12 @@ function PortalDisk({ position, radius, color }: PortalDiskProps) {
 			opacity: 0.95,
 		});
 	}, [color]);
+
+	useEffect(() => {
+		return () => {
+			ringMaterial.dispose();
+		};
+	}, [ringMaterial]);
 
 	return (
 		<group position={[position[0], position[1] + yOffset, position[2]]}>
