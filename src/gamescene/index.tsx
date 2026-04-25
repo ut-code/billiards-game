@@ -14,6 +14,7 @@ import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
+import { PortalPair } from "./components/PortalPair";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
@@ -309,6 +310,7 @@ export default function GameScene() {
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
+									portal={level.portal}
 									respawnPosition={
 										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
@@ -327,6 +329,7 @@ export default function GameScene() {
 								/>
 							);
 						})}
+						{level.portal && <PortalPair portal={level.portal} />}
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>

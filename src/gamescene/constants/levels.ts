@@ -12,12 +12,19 @@ export type BallSpawnConfig = {
 	shootable?: boolean;
 };
 
+export type PortalConfig = {
+	entry: [number, number, number];
+	exit: [number, number, number];
+	radius?: number;
+};
+
 export type LevelConfig = {
 	id: string;
 	name: string;
 	shotLimit: number;
 	description: string;
 	cueBallId: string;
+	portal?: PortalConfig;
 	table?: {
 		clothTextureUrl?: string;
 		floorFriction?: number;
@@ -58,6 +65,11 @@ export const LEVELS: LevelConfig[] = [
 		description: "3球を7打以内に落とす",
 		shotLimit: 7,
 		cueBallId: "poolballs0",
+		portal: {
+			entry: [-0.25, 0, -0.45],
+			exit: [0.5, 0, 0.55],
+			radius: 0.12,
+		},
 		balls: [
 			{
 				id: "poolballs0",
