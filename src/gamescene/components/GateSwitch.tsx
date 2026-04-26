@@ -1,6 +1,6 @@
 import { useBox } from "@react-three/cannon";
 import { useFrame } from "@react-three/fiber";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { PLAY_HEIGHT, PLAY_WIDTH } from "./billiardTable";
 import { useBlock } from "./FillerContextProvider";
 
@@ -24,6 +24,14 @@ export function GateSwitch({ pos }: { pos: [number, number, number] }) {
 		stopProcessing,
 	} = useBlock();
 
+	// useRef を使って isProcessing の最新状態を保持
+	const isProcessingRef = useRef(isProcessing);
+
+	// isProcessing が変化するたびに ref を更新
+	useEffect(() => {
+		isProcessingRef.current = isProcessing;
+	}, [isProcessing]);
+
 	const [ref, api] = useBox(() => ({
 		type: "Kinematic", // 質量を持たず、プログラムから制御する
 		args: SWITCH_SIZE,
@@ -31,7 +39,10 @@ export function GateSwitch({ pos }: { pos: [number, number, number] }) {
 		position: pos,
 		onCollide: (e) => {
 			// すでに処理中、または速度が足りない場合は無視
-			if (isProcessing || e.contact.impactVelocity < IMPACT_THRESHOLD) {
+			if (
+				isProcessingRef.current ||
+				e.contact.impactVelocity < IMPACT_THRESHOLD
+			) {
 				return;
 			}
 

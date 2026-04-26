@@ -109,7 +109,7 @@ export function HoleFiller() {
 					<SideHoleFiller
 						position={pos}
 						texture={cloth}
-						key={crypto.randomUUID()}
+						key={`${pos.X}-${pos.Y}-${pos.Z}`}
 					/>
 				);
 			})}
@@ -118,7 +118,7 @@ export function HoleFiller() {
 					<CornerHoleFiller
 						position={pos}
 						texture={cloth}
-						key={crypto.randomUUID()}
+						key={`${pos.X}-${pos.Y}-${pos.Z}`}
 					/>
 				);
 			})}
