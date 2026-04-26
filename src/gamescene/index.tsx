@@ -14,6 +14,9 @@ import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
+import { BlockProvider } from "./components/FillerContextProvider";
+import { GateSwitch } from "./components/GateSwitch";
+import { HoleFiller } from "./components/HoleFiller";
 import { PortalPair } from "./components/PortalPair";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
@@ -297,6 +300,16 @@ export default function GameScene() {
 							floorFriction={level.table?.floorFriction}
 							planeColor={level.table?.planeColor}
 						/>
+						{/* BlockProviderがあるとき、ポケットが埋まる */}
+						{level.gate?.gateEn && (
+							<BlockProvider>
+								<HoleFiller />
+								{level.gate.gatePos.map((pos) => (
+									<GateSwitch pos={pos} key={`${pos[0]}-${pos[1]}-${pos[2]}`} />
+								))}
+							</BlockProvider>
+						)}
+
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
 

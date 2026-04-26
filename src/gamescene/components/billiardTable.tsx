@@ -11,9 +11,9 @@ export const POCKET_Y_THRESHOLD = -0.2; // ポケットに入ったとみなすy
 const SCALE = 2;
 
 // クッションに囲まれた台面の広さ
-const PLAY_WIDTH = 1.27 * SCALE;
-const PLAY_LENGTH = 2.54 * SCALE;
-const PLAY_HEIGHT = 0.1 * SCALE;
+export const PLAY_WIDTH = 1.27 * SCALE;
+export const PLAY_LENGTH = 2.54 * SCALE;
+export const PLAY_HEIGHT = 0.1 * SCALE;
 
 // 以下、台面の長い方に面する方をSIDE, 短い方に面する方をTOPとする。
 
@@ -37,15 +37,15 @@ const TOP_OUTER_LENGTH =
 const SIDE_OUTER_LENGTH =
 	PLAY_LENGTH + (CUSHION_WIDTH + RAIL_WIDTH + OUTER_WIDTH) * 2;
 
-const SIDE_POCKET_SIZE = 0.14 * SCALE;
+export const SIDE_POCKET_SIZE = 0.14 * SCALE;
 
 // クッションと囲いの下の隙間を埋める部分
-const TABLE_BOTTOM_WIDTH = CUSHION_WIDTH + RAIL_WIDTH;
-const TABLE_BOTTOM_HEIGHT = PLAY_HEIGHT;
+export const TABLE_BOTTOM_WIDTH = CUSHION_WIDTH + RAIL_WIDTH;
+export const TABLE_BOTTOM_HEIGHT = PLAY_HEIGHT;
 const SIDE_TABLE_BOTTOM_LENGTH = (PLAY_LENGTH - SIDE_POCKET_SIZE) / 2;
 const TOP_TABLE_BOTTOM_LENGTH = PLAY_WIDTH;
 
-const OFFSET_Y = PLAY_HEIGHT / 2; //高さ調整
+export const OFFSET_Y = PLAY_HEIGHT / 2; //高さ調整
 const CUSHION_Y = (PLAY_HEIGHT + CUSHION_HEIGHT) / 2 - OFFSET_Y;
 const RAIL_Y = (PLAY_HEIGHT + RAIL_HEIGHT) / 2 - OFFSET_Y;
 const OUTER_Y = RAIL_HEIGHT / 2 - OFFSET_Y;
