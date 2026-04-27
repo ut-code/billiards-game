@@ -43,3 +43,14 @@
 .bomb-text {
 	animation: bomb-text 0.5s ease-out forwards;
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.bomb-flash {
+		animation: none;
+		background: rgba(180, 20, 0, 0.65);
+	}
+	.bomb-text {
+		animation: none;
+		opacity: 1;
+	}
+}

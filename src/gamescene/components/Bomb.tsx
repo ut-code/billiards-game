@@ -156,7 +156,11 @@ export function Bomb({
 		const elapsed = state.clock.getElapsedTime() - explosionStartRef.current;
 		const progress = Math.min(elapsed / EXPLOSION_DURATION, 1);
 
-		if (progress >= 1) return;
+		if (progress >= 1) {
+			explosionStartRef.current = -1;
+			setIsExploding(false);
+			return;
+		}
 
 		// パーティクル位置更新（重力あり）
 		for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -227,7 +231,7 @@ export function Bomb({
 			{isExploding && (
 				<>
 					{/* パーティクル（ワールド座標で動く） */}
-					<points ref={pointsRef}>
+					<points ref={pointsRef} raycast={() => {}}>
 						<bufferGeometry ref={particleGeomRef} />
 						<pointsMaterial
 							color="#ff8800"

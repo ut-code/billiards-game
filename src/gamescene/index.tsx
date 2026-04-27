@@ -308,16 +308,25 @@ export default function GameScene() {
 		});
 	}, []);
 
-	const handleBombExplode = useCallback(() => {
-		setBombExploded(true);
-		if (bombFinalizeTimeoutRef.current !== null) {
-			clearTimeout(bombFinalizeTimeoutRef.current);
-		}
-		bombFinalizeTimeoutRef.current = setTimeout(() => {
-			bombFinalizeTimeoutRef.current = null;
-			finalizeGame(false);
-		}, 2000);
-	}, [finalizeGame]);
+	const handleBombExplode = useCallback(
+		(id: string) => {
+			setMovingBalls((prev) => ({ ...prev, [id]: false }));
+			setBombStates((prev) => {
+				const state = prev[id];
+				if (!state || !state.visible) return prev;
+				return { ...prev, [id]: { visible: false } };
+			});
+			setBombExploded(true);
+			if (bombFinalizeTimeoutRef.current !== null) {
+				clearTimeout(bombFinalizeTimeoutRef.current);
+			}
+			bombFinalizeTimeoutRef.current = setTimeout(() => {
+				bombFinalizeTimeoutRef.current = null;
+				finalizeGame(false);
+			}, 2000);
+		},
+		[finalizeGame],
+	);
 
 	const handleBallSelect = useCallback((shoot: ShootFn) => {
 		shootRef.current = shoot;

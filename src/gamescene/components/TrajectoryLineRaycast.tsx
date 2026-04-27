@@ -38,12 +38,12 @@ function rayCircleIntersect(
 	return t > 1e-6 ? t : null;
 }
 
-type VisibleBall = { id: string; radius: number };
+type VisibleCollider = { id: string; radius: number };
 
 type TrajectoryLineRaycastProps = {
 	ballPositionRef: React.RefObject<Record<string, [number, number, number]>>;
 	cueBallId: string;
-	visibleBalls: VisibleBall[];
+	visibleBalls: VisibleCollider[];
 	visible: boolean;
 };
 
