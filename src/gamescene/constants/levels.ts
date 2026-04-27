@@ -13,10 +13,11 @@ import { SWITCH_SIZE } from "../components/GateSwitch";
 
 export type BallSpawnConfig = {
 	id: string;
-	textureUrl: string;
+	textureUrl?: string;
 	position: [number, number, number];
 	velocity?: [number, number, number];
 	shootable?: boolean;
+	isBomb?: boolean;
 };
 
 export type PortalConfig = {
@@ -181,6 +182,36 @@ export const LEVELS: LevelConfig[] = [
 				id: "poolballs3",
 				textureUrl: poolballs3,
 				position: [0, 0.2, -0.4],
+			},
+		],
+	},
+	{
+		id: "level5",
+		name: "Level 5 - Bomb!",
+		description: "爆弾を避けて2球を5打以内に落とす",
+		shotLimit: 5,
+		cueBallId: "poolballs0",
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.6, 0.2, 0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0.0, 0.2, 0],
+			},
+			{
+				id: "bomb0",
+				position: [0.2, 0.2, 0],
+				isBomb: true,
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0.55, 0.2, 0],
 			},
 		],
 	},

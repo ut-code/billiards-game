@@ -12,6 +12,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import { Ball, type ShootFn } from "./components/Ball";
+import { Bomb } from "./components/Bomb";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
 import { Cue } from "./components/Cue";
@@ -65,10 +66,14 @@ export default function GameScene() {
 	);
 
 	const targetBallIds = useMemo(
-		() => balls.filter((ball) => ball.id !== cueBallId).map((ball) => ball.id),
+		() =>
+			balls
+				.filter((ball) => ball.id !== cueBallId && !ball.isBomb)
+				.map((ball) => ball.id),
 		[balls, cueBallId],
 	);
 
+	const [bombExploded, setBombExploded] = useState(false);
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn>(null);
 	const shotNormalizedPowerRef = useRef(0);
@@ -100,6 +105,7 @@ export default function GameScene() {
 		}
 		gameEndedRef.current = false;
 		hasSeenMovementSinceShotRef.current = false;
+		setBombExploded(false);
 		ballPositionsRef.current = balls.reduce<
 			Record<string, [number, number, number]>
 		>((acc, ball) => {
@@ -276,6 +282,11 @@ export default function GameScene() {
 		[cueBallId],
 	);
 
+	const handleBombExplode = useCallback(() => {
+		setBombExploded(true);
+		setTimeout(() => finalizeGame(false), 2000);
+	}, [finalizeGame]);
+
 	const handleBallSelect = useCallback((shoot: ShootFn) => {
 		shootRef.current = shoot;
 		setIsCharging(true);
@@ -347,6 +358,21 @@ export default function GameScene() {
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
 
+							if (ball.isBomb) {
+								return (
+									<Bomb
+										key={ball.id}
+										id={ball.id}
+										position={ballPositionsRef.current[ball.id]}
+										isVisible={state?.visible ?? true}
+										onExplode={handleBombExplode}
+										onMovingChange={handleMovingChange}
+										onPocket={handlePocket}
+										onPositionChange={handlePositionChange}
+									/>
+								);
+							}
+
 							const isRespawnedCueBall =
 								ball.id === cueBallId && (state?.respawnVersion ?? 0) > 0;
 
@@ -354,7 +380,7 @@ export default function GameScene() {
 								<Ball
 									key={ball.id}
 									id={ball.id}
-									textureUrl={ball.textureUrl}
+									textureUrl={ball.textureUrl ?? ""}
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									portal={level.portal}
@@ -403,6 +429,11 @@ export default function GameScene() {
 					shotCount={shotCount}
 					remainingBalls={remainingTargetBalls}
 				/>
+			)}
+			{bombExploded && (
+				<div className="absolute inset-0 bg-red-600/70 z-20 flex items-center justify-center">
+					<p className="text-white text-6xl font-bold">💥 BOOM!</p>
+				</div>
 			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
