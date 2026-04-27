@@ -156,6 +156,8 @@ export function Bomb({
 		const elapsed = state.clock.getElapsedTime() - explosionStartRef.current;
 		const progress = Math.min(elapsed / EXPLOSION_DURATION, 1);
 
+		if (progress >= 1) return;
+
 		// パーティクル位置更新（重力あり）
 		for (let i = 0; i < PARTICLE_COUNT; i++) {
 			particleVelocitiesRef.current[i * 3 + 1] -= 5.0 * delta;

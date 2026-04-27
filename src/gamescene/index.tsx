@@ -74,6 +74,7 @@ export default function GameScene() {
 	);
 
 	const [bombExploded, setBombExploded] = useState(false);
+	const bombFinalizeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn>(null);
 	const shotNormalizedPowerRef = useRef(0);
@@ -118,6 +119,9 @@ export default function GameScene() {
 		return () => {
 			if (pendingStrikeTimeoutRef.current !== null) {
 				clearTimeout(pendingStrikeTimeoutRef.current);
+			}
+			if (bombFinalizeTimeoutRef.current !== null) {
+				clearTimeout(bombFinalizeTimeoutRef.current);
 			}
 		};
 	}, []);
@@ -284,7 +288,13 @@ export default function GameScene() {
 
 	const handleBombExplode = useCallback(() => {
 		setBombExploded(true);
-		setTimeout(() => finalizeGame(false), 2000);
+		if (bombFinalizeTimeoutRef.current !== null) {
+			clearTimeout(bombFinalizeTimeoutRef.current);
+		}
+		bombFinalizeTimeoutRef.current = setTimeout(() => {
+			bombFinalizeTimeoutRef.current = null;
+			finalizeGame(false);
+		}, 2000);
 	}, [finalizeGame]);
 
 	const handleBallSelect = useCallback((shoot: ShootFn) => {
@@ -363,7 +373,9 @@ export default function GameScene() {
 									<Bomb
 										key={ball.id}
 										id={ball.id}
-										position={ballPositionsRef.current[ball.id]}
+										position={
+											ballPositionsRef.current[ball.id] ?? ball.position
+										}
 										isVisible={state?.visible ?? true}
 										onExplode={handleBombExplode}
 										onMovingChange={handleMovingChange}
@@ -381,7 +393,7 @@ export default function GameScene() {
 									key={ball.id}
 									id={ball.id}
 									textureUrl={ball.textureUrl ?? ""}
-									position={ballPositionsRef.current[ball.id]}
+									position={ballPositionsRef.current[ball.id] ?? ball.position}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									portal={level.portal}
 									respawnPosition={
