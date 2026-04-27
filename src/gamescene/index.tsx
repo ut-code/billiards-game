@@ -14,6 +14,7 @@ import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
+import { Cue } from "./components/Cue";
 import { BlockProvider } from "./components/FillerContextProvider";
 import { GateSwitch } from "./components/GateSwitch";
 import { HoleFiller } from "./components/HoleFiller";
@@ -22,6 +23,7 @@ import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
 import { getLevelConfig } from "./constants/levels";
+import { calcStrikeDuration } from "./constants/physics";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallState = {
@@ -68,7 +70,11 @@ export default function GameScene() {
 	);
 
 	const [isCharging, setIsCharging] = useState(false);
-	const shootRef = useRef<ShootFn | null>(null);
+	const shootRef = useRef<ShootFn>(null);
+	const shotNormalizedPowerRef = useRef(0);
+	const [strikeVersion, setStrikeVersion] = useState(0);
+	const [isStrikeAnimating, setIsStrikeAnimating] = useState(false);
+	const pendingStrikeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
 	const [shotCount, setShotCount] = useState(0);
@@ -84,8 +90,14 @@ export default function GameScene() {
 		setIsCharging(false);
 		setShowRoundStart(false);
 		setShotCount(0);
+		setStrikeVersion(0);
+		setIsStrikeAnimating(false);
 		setPendingShotResolution(false);
 		shootRef.current = null;
+		if (pendingStrikeTimeoutRef.current !== null) {
+			clearTimeout(pendingStrikeTimeoutRef.current);
+			pendingStrikeTimeoutRef.current = null;
+		}
 		gameEndedRef.current = false;
 		hasSeenMovementSinceShotRef.current = false;
 		ballPositionsRef.current = balls.reduce<
@@ -95,6 +107,14 @@ export default function GameScene() {
 			return acc;
 		}, {});
 	}, [balls, initialBallState]);
+
+	useEffect(() => {
+		return () => {
+			if (pendingStrikeTimeoutRef.current !== null) {
+				clearTimeout(pendingStrikeTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	// いずれかのボールが動いているか判定
 	const anyBallMoving = useMemo(
@@ -262,20 +282,34 @@ export default function GameScene() {
 	}, []);
 
 	const handleConfirm = useCallback(
-		(power: number) => {
+		(power: number, normalizedPower: number) => {
 			if (shotCount >= shotLimit) return;
-			const didShoot = shootRef.current?.(power) ?? false;
-			shootRef.current = null;
+			shotNormalizedPowerRef.current = normalizedPower;
+			// キューアニメーションを即時トリガー、PowerGaugeも即時非表示
+			setStrikeVersion((prev) => prev + 1);
 			setIsCharging(false);
-			if (!didShoot) return; // ショットが実行されなかった場合は打数を消費しない
-			hasSeenMovementSinceShotRef.current = false;
-			setPendingShotResolution(true);
-			setShotCount((prev) => prev + 1);
+			setIsStrikeAnimating(true);
+			// インパルスと打数消費はアニメーション完了後
+			pendingStrikeTimeoutRef.current = setTimeout(() => {
+				pendingStrikeTimeoutRef.current = null;
+				setIsStrikeAnimating(false);
+				const didShoot = shootRef.current?.(power) ?? false;
+				shootRef.current = null;
+				if (!didShoot) return;
+				hasSeenMovementSinceShotRef.current = false;
+				setPendingShotResolution(true);
+				setShotCount((prev) => prev + 1);
+			}, calcStrikeDuration(normalizedPower) * 1000);
 		},
 		[shotCount, shotLimit],
 	);
 
 	const handleCancel = useCallback(() => {
+		if (pendingStrikeTimeoutRef.current !== null) {
+			clearTimeout(pendingStrikeTimeoutRef.current);
+			pendingStrikeTimeoutRef.current = null;
+			setIsStrikeAnimating(false);
+		}
 		shootRef.current = null;
 		setIsCharging(false);
 	}, []);
@@ -334,6 +368,7 @@ export default function GameScene() {
 									onSelect={
 										ball.shootable &&
 										!isCharging &&
+										!isStrikeAnimating &&
 										!anyBallMoving &&
 										shotCount < shotLimit
 											? handleBallSelect
@@ -347,6 +382,13 @@ export default function GameScene() {
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
 				<CameraController isCharging={isCharging} />
+				<Cue
+					ballPositionRef={ballPositionsRef}
+					cueBallId={cueBallId}
+					visible={isCharging && (ballStates[cueBallId]?.visible ?? false)}
+					shotVersion={strikeVersion}
+					shotNormalizedPowerRef={shotNormalizedPowerRef}
+				/>
 				<TrajectoryLineRaycast
 					ballPositionRef={ballPositionsRef}
 					cueBallId={cueBallId}
