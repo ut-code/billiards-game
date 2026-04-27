@@ -73,6 +73,7 @@ export default function GameScene() {
 	const shootRef = useRef<ShootFn>(null);
 	const shotNormalizedPowerRef = useRef(0);
 	const [strikeVersion, setStrikeVersion] = useState(0);
+	const [isStrikeAnimating, setIsStrikeAnimating] = useState(false);
 	const pendingStrikeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
@@ -90,6 +91,7 @@ export default function GameScene() {
 		setShowRoundStart(false);
 		setShotCount(0);
 		setStrikeVersion(0);
+		setIsStrikeAnimating(false);
 		setPendingShotResolution(false);
 		shootRef.current = null;
 		if (pendingStrikeTimeoutRef.current !== null) {
@@ -283,14 +285,16 @@ export default function GameScene() {
 		(power: number, normalizedPower: number) => {
 			if (shotCount >= shotLimit) return;
 			shotNormalizedPowerRef.current = normalizedPower;
-			// キューアニメーションを即時トリガー
+			// キューアニメーションを即時トリガー、PowerGaugeも即時非表示
 			setStrikeVersion((prev) => prev + 1);
+			setIsCharging(false);
+			setIsStrikeAnimating(true);
 			// インパルスと打数消費はアニメーション完了後
 			pendingStrikeTimeoutRef.current = setTimeout(() => {
 				pendingStrikeTimeoutRef.current = null;
+				setIsStrikeAnimating(false);
 				const didShoot = shootRef.current?.(power) ?? false;
 				shootRef.current = null;
-				setIsCharging(false);
 				if (!didShoot) return;
 				hasSeenMovementSinceShotRef.current = false;
 				setPendingShotResolution(true);
@@ -304,6 +308,7 @@ export default function GameScene() {
 		if (pendingStrikeTimeoutRef.current !== null) {
 			clearTimeout(pendingStrikeTimeoutRef.current);
 			pendingStrikeTimeoutRef.current = null;
+			setIsStrikeAnimating(false);
 		}
 		shootRef.current = null;
 		setIsCharging(false);
@@ -363,6 +368,7 @@ export default function GameScene() {
 									onSelect={
 										ball.shootable &&
 										!isCharging &&
+										!isStrikeAnimating &&
 										!anyBallMoving &&
 										shotCount < shotLimit
 											? handleBallSelect
