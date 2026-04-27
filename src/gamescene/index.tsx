@@ -15,6 +15,10 @@ import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
 import { Cue } from "./components/Cue";
+import { BlockProvider } from "./components/FillerContextProvider";
+import { GateSwitch } from "./components/GateSwitch";
+import { HoleFiller } from "./components/HoleFiller";
+import { PortalPair } from "./components/PortalPair";
 import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
@@ -298,7 +302,21 @@ export default function GameScene() {
 				<pointLight position={[10, 10, 10]} />
 				<Suspense>
 					<Physics gravity={[0, -9.8, 0]}>
-						<BilliardTable />
+						<BilliardTable
+							surfaceTextureUrl={level.table?.clothTextureUrl}
+							floorFriction={level.table?.floorFriction}
+							planeColor={level.table?.planeColor}
+						/>
+						{/* BlockProviderがあるとき、ポケットが埋まる */}
+						{level.gate?.gateEn && (
+							<BlockProvider>
+								<HoleFiller />
+								{level.gate.gatePos.map((pos) => (
+									<GateSwitch pos={pos} key={`${pos[0]}-${pos[1]}-${pos[2]}`} />
+								))}
+							</BlockProvider>
+						)}
+
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
 
@@ -312,6 +330,7 @@ export default function GameScene() {
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
+									portal={level.portal}
 									respawnPosition={
 										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
@@ -330,6 +349,7 @@ export default function GameScene() {
 								/>
 							);
 						})}
+						{level.portal && <PortalPair portal={level.portal} />}
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>

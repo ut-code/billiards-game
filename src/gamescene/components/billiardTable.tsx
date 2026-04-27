@@ -11,9 +11,9 @@ export const POCKET_Y_THRESHOLD = -0.2; // ポケットに入ったとみなすy
 const SCALE = 2;
 
 // クッションに囲まれた台面の広さ
-const PLAY_WIDTH = 1.27 * SCALE;
-const PLAY_LENGTH = 2.54 * SCALE;
-const PLAY_HEIGHT = 0.1 * SCALE;
+export const PLAY_WIDTH = 1.27 * SCALE;
+export const PLAY_LENGTH = 2.54 * SCALE;
+export const PLAY_HEIGHT = 0.1 * SCALE;
 
 // 以下、台面の長い方に面する方をSIDE, 短い方に面する方をTOPとする。
 
@@ -37,39 +37,44 @@ const TOP_OUTER_LENGTH =
 const SIDE_OUTER_LENGTH =
 	PLAY_LENGTH + (CUSHION_WIDTH + RAIL_WIDTH + OUTER_WIDTH) * 2;
 
-const SIDE_POCKET_SIZE = 0.14 * SCALE;
+export const SIDE_POCKET_SIZE = 0.14 * SCALE;
 
 // クッションと囲いの下の隙間を埋める部分
-const TABLE_BOTTOM_WIDTH = CUSHION_WIDTH + RAIL_WIDTH;
-const TABLE_BOTTOM_HEIGHT = PLAY_HEIGHT;
+export const TABLE_BOTTOM_WIDTH = CUSHION_WIDTH + RAIL_WIDTH;
+export const TABLE_BOTTOM_HEIGHT = PLAY_HEIGHT;
 const SIDE_TABLE_BOTTOM_LENGTH = (PLAY_LENGTH - SIDE_POCKET_SIZE) / 2;
 const TOP_TABLE_BOTTOM_LENGTH = PLAY_WIDTH;
 
-const OFFSET_Y = PLAY_HEIGHT / 2; //高さ調整
+export const OFFSET_Y = PLAY_HEIGHT / 2; //高さ調整
 const CUSHION_Y = (PLAY_HEIGHT + CUSHION_HEIGHT) / 2 - OFFSET_Y;
 const RAIL_Y = (PLAY_HEIGHT + RAIL_HEIGHT) / 2 - OFFSET_Y;
 const OUTER_Y = RAIL_HEIGHT / 2 - OFFSET_Y;
 
 type Pos = { X: number; Y: number; Z: number };
 type TableMaterialProps = { position: Pos; texture: THREE.Texture };
+type PlaneProps = {
+	texture: THREE.Texture;
+	floorFriction: number;
+	planeColor: string;
+};
 
 useTexture.preload(clothTexture);
 useTexture.preload(woodTexture);
 
-function Plane({ texture }: { texture: THREE.Texture }) {
-	// useBoxフックで物理演算を追加
+function Plane({ texture, floorFriction, planeColor }: PlaneProps) {
+	// Planeは台面
 	const [ref] = useBox(() => ({
 		mass: 0, // 質量0にすることで、動かない固定された物体にする
 		position: [0, -OFFSET_Y, 0], // 初期位置
 		args: [PLAY_WIDTH, PLAY_HEIGHT, PLAY_LENGTH], // 幅、高さ、長さ
 		type: "Static",
-		material: { friction: 0.5, restitution: 0 }, // 摩擦を0.1から0.5に増加
+		material: { friction: floorFriction, restitution: 0 },
 	}));
 
 	return (
 		<mesh ref={ref}>
 			<boxGeometry args={[PLAY_WIDTH, PLAY_HEIGHT, PLAY_LENGTH]} />
-			<meshStandardMaterial map={texture} color="#006633" />
+			<meshStandardMaterial map={texture} color={planeColor} />
 		</mesh>
 	);
 }
@@ -103,7 +108,8 @@ function SideCushion({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [CUSHION_WIDTH, CUSHION_HEIGHT, SIDE_CUSHION_LENGTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
+		material: { friction: 0, restitution: 1 }, // 摩擦を0.1から0.5に増加
+		userData: { type: "cushion" },
 	}));
 
 	return (
@@ -135,7 +141,8 @@ function TopCushion({ position, texture }: TableMaterialProps) {
 		position: [position.X, position.Y, position.Z],
 		args: [TOP_CUSHION_LENGTH, CUSHION_HEIGHT, CUSHION_WIDTH],
 		type: "Static",
-		material: { friction: 0, restitution: 0.9 }, // 摩擦を0.1から0.5に増加
+		material: { friction: 0, restitution: 1 }, // 摩擦を0.1から0.5に増加
+		userData: { type: "cushion" },
 	}));
 
 	return (
@@ -356,12 +363,26 @@ function TopTableBottom({ position, texture }: TableMaterialProps) {
 	);
 }
 
-export function BilliardTable() {
-	const cloth = useTexture(clothTexture);
+type BilliardTableProps = {
+	surfaceTextureUrl?: string;
+	floorFriction?: number;
+	planeColor?: string;
+};
+
+export function BilliardTable({
+	surfaceTextureUrl,
+	floorFriction = 0.5,
+	planeColor = "#006633",
+}: BilliardTableProps) {
+	const cloth = useTexture(surfaceTextureUrl ?? clothTexture);
 	const wood = useTexture(woodTexture);
 	return (
 		<>
-			<Plane texture={cloth} />
+			<Plane
+				texture={cloth}
+				floorFriction={floorFriction}
+				planeColor={planeColor}
+			/>
 			{SideCushionPos.map((pos) => {
 				return (
 					<SideCushion

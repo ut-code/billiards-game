@@ -1,4 +1,4 @@
-export const BALL_RADIUS = 0.04;
+export const BALL_RADIUS = 0.06;
 
 const STRIKE_DURATION_MIN = 0.1; // 最大パワー時（秒）
 const STRIKE_DURATION_MAX = 0.4; // 最小パワー時（秒）
