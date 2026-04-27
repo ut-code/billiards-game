@@ -70,8 +70,10 @@ export default function GameScene() {
 	);
 
 	const [isCharging, setIsCharging] = useState(false);
-	const shootRef = useRef<ShootFn | null>(null);
+	const shootRef = useRef<ShootFn>(null);
 	const shotNormalizedPowerRef = useRef(0);
+	const [strikeVersion, setStrikeVersion] = useState(0);
+	const pendingStrikeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
 	const [shotCount, setShotCount] = useState(0);
@@ -87,8 +89,13 @@ export default function GameScene() {
 		setIsCharging(false);
 		setShowRoundStart(false);
 		setShotCount(0);
+		setStrikeVersion(0);
 		setPendingShotResolution(false);
 		shootRef.current = null;
+		if (pendingStrikeTimeoutRef.current !== null) {
+			clearTimeout(pendingStrikeTimeoutRef.current);
+			pendingStrikeTimeoutRef.current = null;
+		}
 		gameEndedRef.current = false;
 		hasSeenMovementSinceShotRef.current = false;
 		ballPositionsRef.current = balls.reduce<
@@ -98,6 +105,14 @@ export default function GameScene() {
 			return acc;
 		}, {});
 	}, [balls, initialBallState]);
+
+	useEffect(() => {
+		return () => {
+			if (pendingStrikeTimeoutRef.current !== null) {
+				clearTimeout(pendingStrikeTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	// いずれかのボールが動いているか判定
 	const anyBallMoving = useMemo(
@@ -268,21 +283,28 @@ export default function GameScene() {
 		(power: number, normalizedPower: number) => {
 			if (shotCount >= shotLimit) return;
 			shotNormalizedPowerRef.current = normalizedPower;
-			// キューの突きアニメーション分だけインパルスを遅らせる
-			setShotCount((prev) => prev + 1);
-			setTimeout(() => {
+			// キューアニメーションを即時トリガー
+			setStrikeVersion((prev) => prev + 1);
+			// インパルスと打数消費はアニメーション完了後
+			pendingStrikeTimeoutRef.current = setTimeout(() => {
+				pendingStrikeTimeoutRef.current = null;
 				const didShoot = shootRef.current?.(power) ?? false;
 				shootRef.current = null;
 				setIsCharging(false);
 				if (!didShoot) return;
 				hasSeenMovementSinceShotRef.current = false;
 				setPendingShotResolution(true);
+				setShotCount((prev) => prev + 1);
 			}, calcStrikeDuration(normalizedPower) * 1000);
 		},
 		[shotCount, shotLimit],
 	);
 
 	const handleCancel = useCallback(() => {
+		if (pendingStrikeTimeoutRef.current !== null) {
+			clearTimeout(pendingStrikeTimeoutRef.current);
+			pendingStrikeTimeoutRef.current = null;
+		}
 		shootRef.current = null;
 		setIsCharging(false);
 	}, []);
@@ -358,7 +380,7 @@ export default function GameScene() {
 					ballPositionRef={ballPositionsRef}
 					cueBallId={cueBallId}
 					visible={isCharging && (ballStates[cueBallId]?.visible ?? false)}
-					shotVersion={shotCount}
+					shotVersion={strikeVersion}
 					shotNormalizedPowerRef={shotNormalizedPowerRef}
 				/>
 				<TrajectoryLineRaycast
