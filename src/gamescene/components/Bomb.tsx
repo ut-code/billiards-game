@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { BALL_RADIUS } from "../constants/physics";
 import { POCKET_Y_THRESHOLD } from "./billiardTable";
 
-const BOMB_RADIUS = BALL_RADIUS * 1.5;
+export const BOMB_RADIUS = BALL_RADIUS * 1.5;
 const BOMB_TRIGGER_VELOCITY = 0.3;
 const PARTICLE_COUNT = 35;
 const EXPLOSION_DURATION = 1.8; // seconds

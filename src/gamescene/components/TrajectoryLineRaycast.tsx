@@ -5,7 +5,7 @@ import { BALL_RADIUS } from "../constants/physics";
 
 const DOT_Y = 0.05;
 const MAX_DISTANCE = 100;
-const COLLISION_RADIUS = BALL_RADIUS * 2;
+
 const DOT_SPACING = 0.08;
 const DOT_SIZE = 3;
 const MAX_DOTS = 128;
@@ -38,17 +38,19 @@ function rayCircleIntersect(
 	return t > 1e-6 ? t : null;
 }
 
+type VisibleBall = { id: string; radius: number };
+
 type TrajectoryLineRaycastProps = {
 	ballPositionRef: React.RefObject<Record<string, [number, number, number]>>;
 	cueBallId: string;
-	visibleBallIds: string[];
+	visibleBalls: VisibleBall[];
 	visible: boolean;
 };
 
 export function TrajectoryLineRaycast({
 	ballPositionRef,
 	cueBallId,
-	visibleBallIds,
+	visibleBalls,
 	visible,
 }: TrajectoryLineRaycastProps) {
 	const pointsRef = useRef<THREE.Points>(null);
@@ -127,11 +129,12 @@ export function TrajectoryLineRaycast({
 		}
 
 		// 2. ボール同士の衝突はballPositionRefから直接判定
-		for (const id of visibleBallIds) {
-			if (id === cueBallId) continue;
-			const pos = ballPositionRef.current?.[id];
+		for (const ball of visibleBalls) {
+			if (ball.id === cueBallId) continue;
+			const pos = ballPositionRef.current?.[ball.id];
 			if (!pos) continue;
 
+			const collisionRadius = BALL_RADIUS + ball.radius;
 			const t = rayCircleIntersect(
 				workOrigin.x,
 				workOrigin.z,
@@ -139,7 +142,7 @@ export function TrajectoryLineRaycast({
 				dz,
 				pos[0],
 				pos[2],
-				COLLISION_RADIUS,
+				collisionRadius,
 			);
 			if (t !== null && t < minDist) {
 				minDist = t;
