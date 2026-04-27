@@ -431,8 +431,10 @@ export default function GameScene() {
 				/>
 			)}
 			{bombExploded && (
-				<div className="absolute inset-0 bg-red-600/70 z-20 flex items-center justify-center">
-					<p className="text-white text-6xl font-bold">💥 BOOM!</p>
+				<div className="bomb-flash absolute inset-0 z-20 flex items-center justify-center">
+					<p className="bomb-text text-white text-6xl font-bold drop-shadow-[0_0_24px_rgba(255,120,0,1)]">
+						💥 BOOM!
+					</p>
 				</div>
 			)}
 			{isCharging && (
