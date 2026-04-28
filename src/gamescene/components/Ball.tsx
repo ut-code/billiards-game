@@ -1,7 +1,7 @@
 import { useSphere } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { PortalConfig } from "../constants/levels";
 import { BALL_RADIUS } from "../constants/physics";
@@ -111,19 +111,20 @@ export function Ball({
 			const speed = Math.sqrt(speedSq);
 			const direction = new THREE.Vector3(vx, 0, vz).normalize();
 
-			// 1. 回転角の決定 (速度が速いほど、1フレームあたりの回転角を微増させる調整も可能)
-			// ここでは一定の角度で曲がるようにしています。
-			// 速度に応じて曲がり具合を変えたい場合は、rotationAngleにspeedを掛けたり割ったりします。
-			const rotationAngle = 0.04 * (left ? 1 : -1); // 0.04は1フレームあたりの回転角度 (調整可能)
+			// 1. 速度依存の回転角 (速度が速いほど曲がりにくくする)
+			// ベースの値を 0.015 に下げて効きを弱くし、さらに速度が速いほど角度を小さくします。
+			const baseRotation = 0.03;
+			const rotationAngle =
+				(baseRotation / (1 + speed * 0.2)) * (left ? 1 : -1);
 
 			// 2. 速度ベクトルの回転
 			// Y軸を中心に回転させることで、水平方向の軌道を曲げます。
 			direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
 
-			// 3. 減衰の適用
-			// 操作中に少し強めに減衰させることで、加速を防ぎつつ、曲がる代償を表現します。
-			// controlDrag の値を調整して、減衰の強さを変更できます (1.0に近いほど減衰が弱い)。
-			const controlDrag = 0.985;
+			// 3. 速度依存の減衰の適用
+			// 速度が速いほど操作時の抵抗を強くし、不自然な加速を完全に封じます。
+			const dragIntensity = 0.004 * speed; // 速度に比例した抵抗値
+			const controlDrag = Math.max(0.9, 0.992 - dragIntensity);
 			const newSpeed = speed * controlDrag;
 
 			// 4. 物理エンジンへの反映 (Velocityを直接上書き)
