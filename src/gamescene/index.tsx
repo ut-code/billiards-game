@@ -82,6 +82,7 @@ export default function GameScene() {
 	const [shotCount, setShotCount] = useState(0);
 	const [pendingShotResolution, setPendingShotResolution] = useState(false);
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
+	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
 	const ballPositionsRef = useRef<Record<string, [number, number, number]>>({});
 	const gameEndedRef = useRef(false);
 	const hasSeenMovementSinceShotRef = useRef(false);
@@ -367,6 +368,7 @@ export default function GameScene() {
 									onMovingChange={handleMovingChange}
 									onPositionChange={handlePositionChange}
 									onPocket={handlePocket}
+									allowMagnet={ball.shootable && magnetEnabled}
 									onSelect={
 										ball.shootable &&
 										!isCharging &&
