@@ -1,7 +1,7 @@
 import { useSphere } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { PortalConfig } from "../constants/levels";
 import { BALL_RADIUS } from "../constants/physics";
@@ -23,6 +23,7 @@ type BallProps = {
 	onPocket?: (id: string) => void;
 	onPositionChange?: (id: string, position: [number, number, number]) => void;
 	portal?: PortalConfig;
+	allowMagnet?: boolean;
 };
 
 function isInsidePortal(
@@ -47,6 +48,7 @@ export function Ball({
 	onPocket,
 	onPositionChange,
 	portal,
+	allowMagnet,
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
@@ -76,6 +78,44 @@ export function Ball({
 	const lastVelocityRef = useRef<[number, number, number]>([0, 0, 0]);
 	const lastTeleportAtRef = useRef(0);
 	const portalWarpAudioRef = useRef<HTMLAudioElement | null>(null);
+	const keys = useRef<Record<string, boolean>>({});
+
+	// マグネットコントロール用のキー入力監視
+	useEffect(() => {
+		if (!allowMagnet) return;
+		const handleKeyDown = (e: KeyboardEvent) => {
+			keys.current[e.key.toLowerCase()] = true;
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			keys.current[e.key.toLowerCase()] = false;
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
+		};
+	}, [allowMagnet]);
+
+	useFrame(() => {
+		if (!allowMagnet || !isMoving.current) return;
+
+		const [vx, , vz] = lastVelocityRef.current;
+		const speedSq = vx * vx + vz * vz;
+		if (speedSq < 0.01) return; // 停止間際は操作不能にする
+
+		const speed = Math.sqrt(speedSq);
+		const perpX = vz / speed;
+		const perpZ = -vx / speed;
+		const strength = 10; // マグネットの強さ
+
+		if (keys.current.a || keys.current.arrowleft) {
+			api.applyForce([perpX * strength, 0, -perpZ * strength], [0, 0, 0]);
+		}
+		if (keys.current.d || keys.current.arrowright) {
+			api.applyForce([-perpX * strength, 0, perpZ * strength], [0, 0, 0]);
+		}
+	});
 
 	useEffect(() => {
 		portalWarpAudioRef.current = new Audio(PORTAL_WARP_SOUND_URL);
