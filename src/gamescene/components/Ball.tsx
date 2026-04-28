@@ -98,22 +98,41 @@ export function Ball({
 	}, [allowMagnet]);
 
 	useFrame(() => {
-		if (!allowMagnet || !isMoving.current) return;
+		if (!allowMagnet || !isMoving.current || hasPocketed.current) return;
 
-		const [vx, , vz] = lastVelocityRef.current;
+		const [vx, vy, vz] = lastVelocityRef.current;
 		const speedSq = vx * vx + vz * vz;
-		if (speedSq < 0.01) return; // 停止間際は操作不能にする
+		if (speedSq < 0.05) return; // ある程度の速度がある時のみ操作可能にする (0.05は調整可能)
 
-		const speed = Math.sqrt(speedSq);
-		const perpX = vz / speed;
-		const perpZ = -vx / speed;
-		const strength = 10; // マグネットの強さ
+		const left = keys.current.a || keys.current.arrowleft;
+		const right = keys.current.d || keys.current.arrowright;
 
-		if (keys.current.a || keys.current.arrowleft) {
-			api.applyForce([perpX * strength, 0, -perpZ * strength], [0, 0, 0]);
-		}
-		if (keys.current.d || keys.current.arrowright) {
-			api.applyForce([-perpX * strength, 0, perpZ * strength], [0, 0, 0]);
+		if (left || right) {
+			const speed = Math.sqrt(speedSq);
+			const direction = new THREE.Vector3(vx, 0, vz).normalize();
+
+			// 1. 回転角の決定 (速度が速いほど、1フレームあたりの回転角を微増させる調整も可能)
+			// ここでは一定の角度で曲がるようにしています。
+			// 速度に応じて曲がり具合を変えたい場合は、rotationAngleにspeedを掛けたり割ったりします。
+			const rotationAngle = 0.04 * (left ? 1 : -1); // 0.04は1フレームあたりの回転角度 (調整可能)
+
+			// 2. 速度ベクトルの回転
+			// Y軸を中心に回転させることで、水平方向の軌道を曲げます。
+			direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
+
+			// 3. 減衰の適用
+			// 操作中に少し強めに減衰させることで、加速を防ぎつつ、曲がる代償を表現します。
+			// controlDrag の値を調整して、減衰の強さを変更できます (1.0に近いほど減衰が弱い)。
+			const controlDrag = 0.985;
+			const newSpeed = speed * controlDrag;
+
+			// 4. 物理エンジンへの反映 (Velocityを直接上書き)
+			// applyForceではなく、直接速度を設定することで、より直接的な制御になります。
+			api.velocity.set(
+				direction.x * newSpeed,
+				vy, // Y軸方向の速度は維持
+				direction.z * newSpeed,
+			);
 		}
 	});
 
