@@ -52,6 +52,15 @@ export function Bomb({
 	const smokeMaterialRef = useRef<THREE.MeshStandardMaterial>(null);
 	const fireballRef = useRef<THREE.Mesh>(null);
 	const fireballMaterialRef = useRef<THREE.MeshStandardMaterial>(null);
+	const explosionAudioRef = useRef<HTMLAudioElement | null>(null);
+
+	useEffect(() => {
+		explosionAudioRef.current = new Audio("/explosion.mp3");
+		explosionAudioRef.current.volume = 0.5;
+		return () => {
+			explosionAudioRef.current = null;
+		};
+	}, []);
 
 	const [ref, api] = useSphere(() => ({
 		mass: 1,
@@ -89,6 +98,12 @@ export function Bomb({
 
 			explosionStartRef.current = -1;
 			setIsExploding(true);
+
+			if (explosionAudioRef.current) {
+				explosionAudioRef.current.currentTime = 0;
+				explosionAudioRef.current.play().catch(console.error);
+			}
+
 			onExplodeRef.current(id);
 		},
 	}));
