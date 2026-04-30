@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
+import { AccelerationFloor } from "./components/AccelerationFloor";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
@@ -324,6 +325,7 @@ export default function GameScene() {
 									position={ballPositionsRef.current[ball.id]}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									portal={level.portal}
+									accelerationFloors={level.accelerationFloors}
 									respawnPosition={
 										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
