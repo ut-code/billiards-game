@@ -345,6 +345,12 @@ export default function GameScene() {
 							);
 						})}
 						{level.portal && <PortalPair portal={level.portal} />}
+						{level.accelerationFloors?.map((floor) => (
+							<AccelerationFloor
+								key={`accel-floor-${floor.position.join("-")}`}
+								config={floor}
+							/>
+						))}
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>

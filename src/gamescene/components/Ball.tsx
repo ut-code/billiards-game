@@ -3,7 +3,10 @@ import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
-import type { PortalConfig } from "../constants/levels";
+import type {
+	AccelerationFloorConfig,
+	PortalConfig,
+} from "../constants/levels";
 import { BALL_RADIUS } from "../constants/physics";
 import { POCKET_Y_THRESHOLD } from "./billiardTable";
 export type ShootFn = (power: number) => boolean;
@@ -23,6 +26,7 @@ type BallProps = {
 	onPocket?: (id: string) => void;
 	onPositionChange?: (id: string, position: [number, number, number]) => void;
 	portal?: PortalConfig;
+	accelerationFloors?: AccelerationFloorConfig[];
 };
 
 function isInsidePortal(
@@ -47,6 +51,7 @@ export function Ball({
 	onPocket,
 	onPositionChange,
 	portal,
+	accelerationFloors,
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
@@ -75,14 +80,21 @@ export function Ball({
 	const hasPocketed = useRef(false);
 	const lastVelocityRef = useRef<[number, number, number]>([0, 0, 0]);
 	const lastTeleportAtRef = useRef(0);
+	const floorsOnRef = useRef<Set<number>>(new Set());
 	const portalWarpAudioRef = useRef<HTMLAudioElement | null>(null);
+	const dashAudioRef = useRef<HTMLAudioElement | null>(null);
 
 	useEffect(() => {
 		portalWarpAudioRef.current = new Audio(PORTAL_WARP_SOUND_URL);
 		portalWarpAudioRef.current.volume = 0.35;
 
+		// ダッシュ時の効果音として既存の衝突音などを流用するか、専用の音声をロードする
+		dashAudioRef.current = new Audio("/collision_with_balls.mp3");
+		dashAudioRef.current.volume = 0.5;
+
 		return () => {
 			portalWarpAudioRef.current = null;
+			dashAudioRef.current = null;
 		};
 	}, []);
 
@@ -142,6 +154,52 @@ export function Ball({
 				}
 			}
 
+			if (accelerationFloors) {
+				accelerationFloors.forEach((floor, idx) => {
+					const dx = p[0] - floor.position[0];
+					const dz = p[2] - floor.position[2];
+
+					// directionベクトルの角度を計算
+					const angle = Math.atan2(floor.direction[0], floor.direction[2]);
+
+					// 逆回転させてローカル座標に変換
+					const localX = dx * Math.cos(-angle) - dz * Math.sin(-angle);
+					const localZ = dx * Math.sin(-angle) + dz * Math.cos(-angle);
+
+					const halfWidth = floor.size[0] / 2;
+					const halfLength = floor.size[1] / 2;
+
+					const isInside =
+						Math.abs(localX) <= halfWidth && Math.abs(localZ) <= halfLength;
+					const wasInside = floorsOnRef.current.has(idx);
+
+					if (isInside && !wasInside) {
+						// 床に入った瞬間、速度とスピンを完全に上書きする
+						// directionは正規化されている前提
+						const dir = new THREE.Vector3(
+							floor.direction[0],
+							floor.direction[1],
+							floor.direction[2],
+						).normalize();
+
+						// 速度（velocity）を強制上書き。strength を直接のスピードとして扱う
+						api.velocity.set(dir.x * floor.strength, 0, dir.z * floor.strength);
+
+						// 直進後に変なカーブを描かないように、ボールの回転（スピン）をリセット
+						api.angularVelocity.set(0, 0, 0);
+						floorsOnRef.current.add(idx);
+
+						if (dashAudioRef.current) {
+							dashAudioRef.current.currentTime = 0;
+							void dashAudioRef.current.play();
+						}
+					} else if (!isInside && wasInside) {
+						// 床から出た
+						floorsOnRef.current.delete(idx);
+					}
+				});
+			}
+
 			if (hasPocketed.current) return;
 
 			if (p[1] <= POCKET_Y_THRESHOLD) {
@@ -153,7 +211,16 @@ export function Ball({
 		});
 
 		return () => unsubscribe();
-	}, [api.position, api.velocity, id, onPocket, onPositionChange, portal]);
+	}, [
+		api.position,
+		api.velocity,
+		id,
+		onPocket,
+		onPositionChange,
+		portal,
+		accelerationFloors,
+		api.angularVelocity,
+	]);
 
 	useEffect(() => {
 		if (!respawnPosition) return;
