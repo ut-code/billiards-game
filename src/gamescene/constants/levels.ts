@@ -196,7 +196,7 @@ export const LEVELS: LevelConfig[] = [
 		description: "爆弾を避けて2球を5打以内に落とす",
 		shotLimit: 5,
 		cueBallId: "poolballs0",
-		bombs: [{ id: "bomb0", position: [0.2, 0.2, 0] }],
+		bombs: [{ id: "bomb0", position: [0.2, 0.2, -0.5] }],
 		balls: [
 			{
 				id: "poolballs0",
