@@ -1,7 +1,7 @@
 import { useSphere } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type {
 	AccelerationFloorConfig,
@@ -84,6 +84,26 @@ export function Ball({
 	const portalWarpAudioRef = useRef<HTMLAudioElement | null>(null);
 	const dashAudioRef = useRef<HTMLAudioElement | null>(null);
 
+	// 加速床の判定に必要な計算（角度、三角関数、半サイズ、正規化ベクトル）を事前計算
+	const processedFloors = useMemo(() => {
+		if (!accelerationFloors) return null;
+		return accelerationFloors.map((floor) => {
+			const angle = Math.atan2(floor.direction[0], floor.direction[2]);
+			return {
+				...floor,
+				sinAngle: Math.sin(-angle),
+				cosAngle: Math.cos(-angle),
+				halfWidth: floor.size[0] / 2,
+				halfLength: floor.size[1] / 2,
+				normalizedDir: new THREE.Vector3(
+					floor.direction[0],
+					floor.direction[1],
+					floor.direction[2],
+				).normalize(),
+			};
+		});
+	}, [accelerationFloors]);
+
 	useEffect(() => {
 		portalWarpAudioRef.current = new Audio(PORTAL_WARP_SOUND_URL);
 		portalWarpAudioRef.current.volume = 0.35;
@@ -129,6 +149,10 @@ export function Ball({
 	}, [api.velocity, api.angularVelocity, id, onMovingChange]);
 
 	useEffect(() => {
+		// 物理サブスクリプションが再生成される（床などの環境が更新された）タイミングで
+		// 過去に乗っていた床の履歴をクリアする
+		floorsOnRef.current.clear();
+
 		const unsubscribe = api.position.subscribe((p) => {
 			onPositionChange?.(id, [p[0], p[1], p[2]]);
 
@@ -154,33 +178,23 @@ export function Ball({
 				}
 			}
 
-			if (accelerationFloors) {
-				accelerationFloors.forEach((floor, idx) => {
+			if (processedFloors) {
+				processedFloors.forEach((floor, idx) => {
 					const dx = p[0] - floor.position[0];
 					const dz = p[2] - floor.position[2];
 
-					// directionベクトルの角度を計算
-					const angle = Math.atan2(floor.direction[0], floor.direction[2]);
-
-					// 逆回転させてローカル座標に変換
-					const localX = dx * Math.cos(-angle) - dz * Math.sin(-angle);
-					const localZ = dx * Math.sin(-angle) + dz * Math.cos(-angle);
-
-					const halfWidth = floor.size[0] / 2;
-					const halfLength = floor.size[1] / 2;
+					// 事前計算済みの値を使ってローカル座標に変換
+					const localX = dx * floor.cosAngle - dz * floor.sinAngle;
+					const localZ = dx * floor.sinAngle + dz * floor.cosAngle;
 
 					const isInside =
-						Math.abs(localX) <= halfWidth && Math.abs(localZ) <= halfLength;
+						Math.abs(localX) <= floor.halfWidth &&
+						Math.abs(localZ) <= floor.halfLength;
 					const wasInside = floorsOnRef.current.has(idx);
 
 					if (isInside && !wasInside) {
 						// 床に入った瞬間、速度とスピンを完全に上書きする
-						// directionは正規化されている前提
-						const dir = new THREE.Vector3(
-							floor.direction[0],
-							floor.direction[1],
-							floor.direction[2],
-						).normalize();
+						const dir = floor.normalizedDir;
 
 						// 速度（velocity）を強制上書き。strength を直接のスピードとして扱う
 						api.velocity.set(dir.x * floor.strength, 0, dir.z * floor.strength);
@@ -218,7 +232,7 @@ export function Ball({
 		onPocket,
 		onPositionChange,
 		portal,
-		accelerationFloors,
+		processedFloors,
 		api.angularVelocity,
 	]);
 

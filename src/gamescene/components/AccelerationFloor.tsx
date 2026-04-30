@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { AccelerationFloorConfig } from "../constants/levels";
 
@@ -48,13 +48,22 @@ export function AccelerationFloor({ config }: AccelerationFloorProps) {
 		return tex;
 	}, [config.size]);
 
+	// メモリリークを防ぐため、コンポーネントのアンマウント時またはテクスチャ再生成時に古いテクスチャを破棄
+	useEffect(() => {
+		return () => {
+			texture.dispose();
+		};
+	}, [texture]);
+
 	const materialRef = useRef<THREE.MeshStandardMaterial>(null);
 
 	// 毎フレーム、テクスチャをずらして流れるアニメーションを実現
 	useFrame((_, delta) => {
-		if (materialRef.current?.map) {
+		const map = materialRef.current?.map;
+		if (map) {
 			// テクスチャを上方向（V軸マイナス方向）へスクロールして、矢印の向きに流れるようにする
-			materialRef.current.map.offset.y -= delta * 2.5;
+			// RepeatWrapping を使っているため、オフセットは 0..1 の範囲に正規化して精度低下を防ぐ
+			map.offset.y = (((map.offset.y - delta * 2.5) % 1) + 1) % 1;
 		}
 	});
 
