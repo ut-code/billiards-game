@@ -192,6 +192,46 @@ export const LEVELS: LevelConfig[] = [
 			},
 		],
 	},
+	{
+		id: "level5",
+		name: "Level 5 - Dash Panel Chain",
+		description: "3つの加速床を連鎖させて、サイドポケットに落とそう",
+		shotLimit: 5,
+		cueBallId: "poolballs0",
+		accelerationFloors: [
+			{
+				position: [-0.5, 0, 0.5],
+				size: [0.3, 0.3],
+				direction: [1, 0, 0], // +Xへ
+				strength: 7,
+			},
+			{
+				position: [0.6, 0, 0.5],
+				size: [0.3, 0.3],
+				direction: [0, 0, 1], // +Zへ
+				strength: 7,
+			},
+			{
+				position: [0.6, 0, 1.87],
+				size: [0.3, 0.3],
+				direction: [1, 0, 1], // 斜め45度 (右上コーナーポケットへ)
+				strength: 9, // 最後は少し強めに
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.5, 0.2, -2.0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [-0.5, 0.2, -1.0],
+			},
+		],
+	},
 ];
 
 export function getLevelConfig(levelId?: string) {
