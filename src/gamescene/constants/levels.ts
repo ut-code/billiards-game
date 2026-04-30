@@ -30,6 +30,13 @@ export type GateConfig = {
 	gatePos: [number, number, number][];
 };
 
+export type AccelerationFloorConfig = {
+	position: [number, number, number];
+	size: [number, number];
+	direction: [number, number, number];
+	strength: number;
+};
+
 export type LevelConfig = {
 	id: string;
 	name: string;
@@ -43,6 +50,7 @@ export type LevelConfig = {
 		planeColor?: string;
 	};
 	gate?: GateConfig;
+	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
 };
 
