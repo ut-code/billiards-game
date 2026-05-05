@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type PowerGaugeProps = {
-	onConfirm: (power: number) => void;
+	onConfirm: (power: number, normalizedPower: number) => void;
 	onCancel: () => void;
 	minForce?: number;
 	maxForce?: number;
@@ -42,7 +42,10 @@ export function PowerGauge({
 	}, []);
 
 	const handleConfirm = useCallback(() => {
-		onConfirm(minForce + powerRef.current * (maxForce - minForce));
+		onConfirm(
+			minForce + powerRef.current * (maxForce - minForce),
+			powerRef.current,
+		);
 	}, [onConfirm, minForce, maxForce]);
 
 	useEffect(() => {
