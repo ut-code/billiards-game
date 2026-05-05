@@ -53,7 +53,7 @@ export function Cue({
 	const dir = useMemo(() => new THREE.Vector3(), []);
 	const pos = useMemo(() => new THREE.Vector3(), []);
 
-	const strikeRef = useRef<StrikeState>(null);
+	const strikeRef = useRef<StrikeState | null>(null);
 	const prevShotVersion = useRef(shotVersion);
 	const currentOffsetRef = useRef(CUE_GAP + CUE_LENGTH / 2);
 

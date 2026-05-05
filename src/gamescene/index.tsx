@@ -70,11 +70,13 @@ export default function GameScene() {
 	);
 
 	const [isCharging, setIsCharging] = useState(false);
-	const shootRef = useRef<ShootFn>(null);
+	const shootRef = useRef<ShootFn | null>(null);
 	const shotNormalizedPowerRef = useRef(0);
 	const [strikeVersion, setStrikeVersion] = useState(0);
 	const [isStrikeAnimating, setIsStrikeAnimating] = useState(false);
-	const pendingStrikeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+	const pendingStrikeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
 	const [shotCount, setShotCount] = useState(0);
