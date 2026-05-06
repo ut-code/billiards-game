@@ -103,6 +103,29 @@ export default function GameScene() {
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
 	const [bombStates, setBombStates] = useState<Record<string, BombState>>({});
 	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
+	const [pressedKey, setPressedKey] = useState<string | null>(null);
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			const key = e.key.toLowerCase();
+			if (key === "a" || key === "d") {
+				setPressedKey(key);
+			}
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			const key = e.key.toLowerCase();
+			if (key === "a" || key === "d") {
+				setPressedKey(null);
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
+		};
+	}, []);
+
 	const ballPositionsRef = useRef<Record<string, [number, number, number]>>({});
 	const gameEndedRef = useRef(false);
 	const hasSeenMovementSinceShotRef = useRef(false);
@@ -500,6 +523,23 @@ export default function GameScene() {
 			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
+			)}
+			{magnetEnabled && (
+				<div className="absolute bottom-8 right-8 z-10 flex items-center gap-3">
+					<div
+						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "a" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+					>
+						←
+					</div>
+					<div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-black/55 text-3xl shadow-lg backdrop-blur-sm">
+						🧲
+					</div>
+					<div
+						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "d" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+					>
+						→
+					</div>
+				</div>
 			)}
 		</div>
 	);
