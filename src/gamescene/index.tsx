@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
+import { AccelerationFloor } from "./components/AccelerationFloor";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BOMB_RADIUS, Bomb } from "./components/Bomb";
 import { BilliardTable } from "./components/billiardTable";
@@ -420,6 +421,7 @@ export default function GameScene() {
 									position={ballPositionsRef.current[ball.id] ?? ball.position}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									portals={portals}
+									accelerationFloors={level.accelerationFloors}
 									respawnPosition={
 										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
@@ -458,6 +460,12 @@ export default function GameScene() {
 							<PortalPair
 								portal={portal}
 								key={`${portal.entry.join(",")}-${portal.exit.join(",")}`}
+							/>
+						))}
+						{level.accelerationFloors?.map((floor) => (
+							<AccelerationFloor
+								key={`accel-floor-${floor.position.join("-")}`}
+								config={floor}
 							/>
 						))}
 					</Physics>

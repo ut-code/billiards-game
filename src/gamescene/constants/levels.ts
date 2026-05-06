@@ -42,6 +42,14 @@ export type DividerConfig = {
 	color?: string;
 };
 
+export type AccelerationFloorConfig = {
+	id: string;
+	position: [number, number, number];
+	size: [number, number];
+	direction: [number, number, number]; // Y成分は無視され、XZ平面上の方向のみ有効
+	strength: number;
+};
+
 export type LevelConfig = {
 	id: string;
 	name: string;
@@ -57,6 +65,7 @@ export type LevelConfig = {
 	gate?: GateConfig;
 	dividers?: DividerConfig[];
 	bombs?: BombSpawnConfig[];
+	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
 };
 
@@ -287,6 +296,87 @@ export const LEVELS: LevelConfig[] = [
 				id: "poolballs3",
 				textureUrl: poolballs3,
 				position: [1, 0.2, -PLAY_LENGTH / 3 + 4.0],
+			},
+		],
+	},
+	{
+		id: "level8",
+		name: "Level 8 - Bomb Trap",
+		description: "加速床の罠を避けて3球を20打以内に落とす",
+		shotLimit: 20,
+		cueBallId: "poolballs0",
+		bombs: [
+			{ id: "bomb0", position: [0, 0.2, -1.1] },
+			{ id: "bomb1", position: [0, 0.2, 1.1] },
+		],
+		accelerationFloors: [
+			// 罠1: 爆弾(0, -1.1)を重心とする正三角形の各頂点に配置
+			// 頂点1: テーブル中央側 (0, -0.6) → 爆弾へ [0, 0, -1]
+			{
+				id: "accel-l8-0",
+				position: [0, 0, -0.6],
+				size: [0.35, 0.3],
+				direction: [0, 0, -1],
+				strength: 8,
+			},
+			// 頂点2: 左奥 (-0.43, -1.35) → 爆弾へ [0.87, 0, 0.5]
+			{
+				id: "accel-l8-1",
+				position: [-0.43, 0, -1.35],
+				size: [0.35, 0.3],
+				direction: [0.87, 0, 0.5],
+				strength: 8,
+			},
+			// 頂点3: 右奥 (0.43, -1.35) → 爆弾へ [-0.87, 0, 0.5]
+			{
+				id: "accel-l8-2",
+				position: [0.43, 0, -1.35],
+				size: [0.35, 0.3],
+				direction: [-0.87, 0, 0.5],
+				strength: 8,
+			},
+			// 罠2: 爆弾(0, 1.1)を重心とする正三角形の各頂点に配置
+			// 頂点1: テーブル中央側 (0, 0.6) → 爆弾へ [0, 0, 1]
+			{
+				id: "accel-l8-3",
+				position: [0, 0, 0.6],
+				size: [0.35, 0.3],
+				direction: [0, 0, 1],
+				strength: 8,
+			},
+			// 頂点2: 右奥 (0.43, 1.35) → 爆弾へ [-0.87, 0, -0.5]
+			{
+				id: "accel-l8-4",
+				position: [0.43, 0, 1.35],
+				size: [0.35, 0.3],
+				direction: [-0.87, 0, -0.5],
+				strength: 8,
+			},
+			// 頂点3: 左奥 (-0.43, 1.35) → 爆弾へ [0.87, 0, -0.5]
+			{
+				id: "accel-l8-5",
+				position: [-0.43, 0, 1.35],
+				size: [0.35, 0.3],
+				direction: [0.87, 0, -0.5],
+				strength: 8,
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.9, 0.2, 0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0, 0.2, -2.0],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0, 0.2, 2.0],
 			},
 		],
 	},
