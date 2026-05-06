@@ -1,6 +1,6 @@
 import { useSphere } from "@react-three/cannon";
 import { useTexture } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { PortalConfig } from "../constants/levels";
@@ -23,6 +23,7 @@ type BallProps = {
 	onPocket?: (id: string) => void;
 	onPositionChange?: (id: string, position: [number, number, number]) => void;
 	portal?: PortalConfig;
+	allowMagnet?: boolean;
 };
 
 function isInsidePortal(
@@ -47,6 +48,7 @@ export function Ball({
 	onPocket,
 	onPositionChange,
 	portal,
+	allowMagnet,
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
@@ -76,6 +78,64 @@ export function Ball({
 	const lastVelocityRef = useRef<[number, number, number]>([0, 0, 0]);
 	const lastTeleportAtRef = useRef(0);
 	const portalWarpAudioRef = useRef<HTMLAudioElement | null>(null);
+	const keys = useRef<Record<string, boolean>>({});
+
+	// マグネットコントロール用のキー入力監視
+	useEffect(() => {
+		if (!allowMagnet) return;
+		const handleKeyDown = (e: KeyboardEvent) => {
+			keys.current[e.key.toLowerCase()] = true;
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			keys.current[e.key.toLowerCase()] = false;
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
+		};
+	}, [allowMagnet]);
+
+	useFrame(() => {
+		if (!allowMagnet || !isMoving.current || hasPocketed.current) return;
+
+		const [vx, vy, vz] = lastVelocityRef.current;
+		const speedSq = vx * vx + vz * vz;
+		if (speedSq < 0.05) return; // ある程度の速度がある時のみ操作可能にする (0.05は調整可能)
+
+		const left = keys.current.a || keys.current.arrowleft;
+		const right = keys.current.d || keys.current.arrowright;
+
+		if (left || right) {
+			const speed = Math.sqrt(speedSq);
+			const direction = new THREE.Vector3(vx, 0, vz).normalize();
+
+			// 1. 速度依存の回転角 (速度が速いほど曲がりにくくする)
+			// ベースの値を 0.015 に下げて効きを弱くし、さらに速度が速いほど角度を小さくします。
+			const baseRotation = 0.03;
+			const rotationAngle =
+				(baseRotation / (1 + speed * 0.2)) * (left ? 1 : -1);
+
+			// 2. 速度ベクトルの回転
+			// Y軸を中心に回転させることで、水平方向の軌道を曲げます。
+			direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
+
+			// 3. 速度依存の減衰の適用
+			// 速度が速いほど操作時の抵抗を強くし、不自然な加速を完全に封じます。
+			const dragIntensity = 0.004 * speed; // 速度に比例した抵抗値
+			const controlDrag = Math.max(0.9, 0.992 - dragIntensity);
+			const newSpeed = speed * controlDrag;
+
+			// 4. 物理エンジンへの反映 (Velocityを直接上書き)
+			// applyForceではなく、直接速度を設定することで、より直接的な制御になります。
+			api.velocity.set(
+				direction.x * newSpeed,
+				vy, // Y軸方向の速度は維持
+				direction.z * newSpeed,
+			);
+		}
+	});
 
 	useEffect(() => {
 		portalWarpAudioRef.current = new Audio(PORTAL_WARP_SOUND_URL);
