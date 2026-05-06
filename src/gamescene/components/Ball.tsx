@@ -278,42 +278,6 @@ export function Ball({
 				});
 			}
 
-			if (processedFloors) {
-				processedFloors.forEach((floor) => {
-					const dx = p[0] - floor.position[0];
-					const dz = p[2] - floor.position[2];
-
-					// 事前計算済みの値を使ってローカル座標に変換
-					const localX = dx * floor.cosAngle - dz * floor.sinAngle;
-					const localZ = dx * floor.sinAngle + dz * floor.cosAngle;
-
-					const isInside =
-						Math.abs(localX) <= floor.halfWidth &&
-						Math.abs(localZ) <= floor.halfLength;
-					const wasInside = floorsOnRef.current.has(floor.id);
-
-					if (isInside && !wasInside) {
-						// 床に入った瞬間、速度とスピンを完全に上書きする
-						const dir = floor.normalizedDir;
-
-						// 速度（velocity）を強制上書き。strength を直接のスピードとして扱う
-						api.velocity.set(dir.x * floor.strength, 0, dir.z * floor.strength);
-
-						// 直進後に変なカーブを描かないように、ボールの回転（スピン）をリセット
-						api.angularVelocity.set(0, 0, 0);
-						floorsOnRef.current.add(floor.id);
-
-						if (dashAudioRef.current) {
-							dashAudioRef.current.currentTime = 0;
-							void dashAudioRef.current.play();
-						}
-					} else if (!isInside && wasInside) {
-						// 床から出た
-						floorsOnRef.current.delete(floor.id);
-					}
-				});
-			}
-
 			if (hasPocketed.current) return;
 
 			if (p[1] <= POCKET_Y_THRESHOLD) {
