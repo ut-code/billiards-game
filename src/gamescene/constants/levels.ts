@@ -105,7 +105,7 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level2",
 		name: "Level 2",
-		description: "3球を15打以内に落とす",
+		description: "5球を15打以内に落とす",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		balls: [
@@ -145,7 +145,7 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level3",
 		name: "Level 3 - Ice Floor",
-		description: "氷の床で4球を15打以内に落とす",
+		description: "氷の床で6球を15打以内に落とす",
 		gimmic: "氷の床のため、滑りやすくなっています",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
