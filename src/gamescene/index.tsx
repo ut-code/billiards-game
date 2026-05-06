@@ -529,7 +529,9 @@ export default function GameScene() {
 			{isStartModalOpen && (
 				<StartModal
 					title={level.name}
-					description={"全てのターゲットをポケットに落としてください。"}
+					description={
+						level.gimmic ?? "全てのターゲットをポケットに落としてください。"
+					}
 					onClose={() => setIsStartModalOpen(false)}
 				/>
 			)}

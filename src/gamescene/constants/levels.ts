@@ -57,6 +57,7 @@ export type LevelConfig = {
 	name: string;
 	shotLimit: number;
 	description: string;
+	gimmic?: string;
 	cueBallId: string;
 	portals?: PortalConfig[];
 	table?: {
@@ -145,6 +146,7 @@ export const LEVELS: LevelConfig[] = [
 		id: "level3",
 		name: "Level 3 - Ice Floor",
 		description: "氷の床で4球を8打以内に落とす",
+		gimmic: "氷の床のため、滑りやすくなっています",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		table: {
@@ -195,6 +197,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level4",
 		name: "Level 4 - Switch Gate",
 		description: "3球を10打以内に落とす",
+		gimmic:
+			"動くスイッチに強くぶつけると、ポケットが1分間開きます\n開いたすきを狙ってボールをすべて落としてください",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		gate: {
@@ -232,6 +236,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level5",
 		name: "Level 5 - Bomb!",
 		description: "爆弾を避けて2球を5打以内に落とす",
+		gimmic:
+			"爆弾に触ると爆発してゲームオーバーになります。\n爆弾に触らないように気を付けよう!",
 		shotLimit: 5,
 		cueBallId: "poolballs0",
 		bombs: [{ id: "bomb0", position: [0.2, 0.2, -0.5] }],
