@@ -281,7 +281,7 @@ export const LEVELS: LevelConfig[] = [
 			{
 				id: "poolballs2",
 				textureUrl: poolballs2,
-				position: [-0.25, 0.2, PLAY_LENGTH / 3 - 0.2],
+				position: [1, 0.2, -2],
 			},
 			{
 				id: "poolballs3",
