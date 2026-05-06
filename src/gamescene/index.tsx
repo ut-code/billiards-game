@@ -27,6 +27,7 @@ import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
 import { getLevelConfig } from "./constants/levels";
 import { BALL_RADIUS, calcStrikeDuration } from "./constants/physics";
+import { StartModal } from "./gimmicDocs/StartModal";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallState = {
@@ -103,6 +104,7 @@ export default function GameScene() {
 	const [pendingShotResolution, setPendingShotResolution] = useState(false);
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
 	const [bombStates, setBombStates] = useState<Record<string, BombState>>({});
+	const [isStartModalOpen, setIsStartModalOpen] = useState(true);
 	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
 	const [pressedKey, setPressedKey] = useState<string | null>(null);
 
@@ -135,6 +137,7 @@ export default function GameScene() {
 		setBallStates(initialBallState);
 		setBombStates(initialBombState);
 		setMovingBalls({});
+		setIsStartModalOpen(true);
 		setIsCharging(false);
 		setShowRoundStart(false);
 		setShotCount(0);
@@ -455,6 +458,7 @@ export default function GameScene() {
 									allowMagnet={ball.shootable && magnetEnabled}
 									onSelect={
 										ball.shootable &&
+										!isStartModalOpen &&
 										!isCharging &&
 										!isStrikeAnimating &&
 										!anyBallMoving &&
@@ -521,6 +525,23 @@ export default function GameScene() {
 					shotCount={shotCount}
 					remainingBalls={remainingTargetBalls}
 				/>
+			)}
+			{isStartModalOpen && (
+				<StartModal
+					title={level.name}
+					description={"全てのターゲットをポケットに落としてください。"}
+					onClose={() => setIsStartModalOpen(false)}
+				/>
+			)}
+			{!isStartModalOpen && (
+				<button
+					type="button"
+					onClick={() => setIsStartModalOpen(true)}
+					className="absolute bottom-8 left-8 z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-black/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110 active:scale-95"
+					title="ミッション詳細を表示"
+				>
+					ℹ️
+				</button>
 			)}
 			{bombExploded && (
 				<div className="bomb-flash absolute inset-0 z-20 flex items-center justify-center">
