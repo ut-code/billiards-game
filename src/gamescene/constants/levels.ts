@@ -19,6 +19,11 @@ export type BallSpawnConfig = {
 	shootable?: boolean;
 };
 
+export type BombSpawnConfig = {
+	id: string;
+	position: [number, number, number];
+};
+
 export type PortalConfig = {
 	entry: [number, number, number];
 	exit: [number, number, number];
@@ -50,6 +55,7 @@ export type LevelConfig = {
 		planeColor?: string;
 	};
 	gate?: GateConfig;
+	bombs?: BombSpawnConfig[];
 	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
 };
@@ -194,7 +200,33 @@ export const LEVELS: LevelConfig[] = [
 	},
 	{
 		id: "level5",
-		name: "Level 5 - Dash Panel Chain",
+		name: "Level 5 - Bomb!",
+		description: "爆弾を避けて2球を5打以内に落とす",
+		shotLimit: 5,
+		cueBallId: "poolballs0",
+		bombs: [{ id: "bomb0", position: [0.2, 0.2, -0.5] }],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.6, 0.2, 0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0.0, 0.2, 0],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0.55, 0.2, 0],
+			},
+		],
+	},
+	{
+		id: "level6",
+		name: "Level 6 - Dash Panel Chain",
 		description: "3つの加速床を連鎖させて、サイドポケットに落とそう",
 		shotLimit: 5,
 		cueBallId: "poolballs0",

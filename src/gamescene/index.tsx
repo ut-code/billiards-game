@@ -13,8 +13,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import { AccelerationFloor } from "./components/AccelerationFloor";
 import { Ball, type ShootFn } from "./components/Ball";
+import { BOMB_RADIUS, Bomb } from "./components/Bomb";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
+import { Cue } from "./components/Cue";
 import { BlockProvider } from "./components/FillerContextProvider";
 import { GateSwitch } from "./components/GateSwitch";
 import { HoleFiller } from "./components/HoleFiller";
@@ -23,6 +25,7 @@ import { PowerGauge } from "./components/PowerGauge";
 import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
 import { getLevelConfig } from "./constants/levels";
+import { BALL_RADIUS, calcStrikeDuration } from "./constants/physics";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallState = {
@@ -32,6 +35,10 @@ type BallState = {
 	respawnVersion: number;
 	spawnPosition: [number, number, number];
 	respawnPosition?: [number, number, number];
+};
+
+type BombState = {
+	visible: boolean;
 };
 
 export default function GameScene() {
@@ -45,6 +52,7 @@ export default function GameScene() {
 	}, [level, navigate]);
 
 	const balls = useMemo(() => level?.balls ?? [], [level]);
+	const bombs = useMemo(() => level?.bombs ?? [], [level]);
 	const cueBallId = level?.cueBallId ?? "";
 	const shotLimit = level?.shotLimit ?? 0;
 
@@ -63,39 +71,77 @@ export default function GameScene() {
 		[balls],
 	);
 
+	const initialBombState = useMemo(
+		() =>
+			bombs.reduce<Record<string, BombState>>((acc, bomb) => {
+				acc[bomb.id] = { visible: true };
+				return acc;
+			}, {}),
+		[bombs],
+	);
+
 	const targetBallIds = useMemo(
 		() => balls.filter((ball) => ball.id !== cueBallId).map((ball) => ball.id),
 		[balls, cueBallId],
 	);
 
+	const [bombExploded, setBombExploded] = useState(false);
+	const bombFinalizeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 	const [isCharging, setIsCharging] = useState(false);
 	const shootRef = useRef<ShootFn | null>(null);
+	const shotNormalizedPowerRef = useRef(0);
+	const [strikeVersion, setStrikeVersion] = useState(0);
+	const [isStrikeAnimating, setIsStrikeAnimating] = useState(false);
+	const pendingStrikeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	);
 	const [movingBalls, setMovingBalls] = useState<Record<string, boolean>>({});
 	const [showRoundStart, setShowRoundStart] = useState(false);
 	const [shotCount, setShotCount] = useState(0);
 	const [pendingShotResolution, setPendingShotResolution] = useState(false);
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
+	const [bombStates, setBombStates] = useState<Record<string, BombState>>({});
+	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
 	const ballPositionsRef = useRef<Record<string, [number, number, number]>>({});
 	const gameEndedRef = useRef(false);
 	const hasSeenMovementSinceShotRef = useRef(false);
 
 	useEffect(() => {
 		setBallStates(initialBallState);
+		setBombStates(initialBombState);
 		setMovingBalls({});
 		setIsCharging(false);
 		setShowRoundStart(false);
 		setShotCount(0);
+		setStrikeVersion(0);
+		setIsStrikeAnimating(false);
 		setPendingShotResolution(false);
 		shootRef.current = null;
+		if (pendingStrikeTimeoutRef.current !== null) {
+			clearTimeout(pendingStrikeTimeoutRef.current);
+			pendingStrikeTimeoutRef.current = null;
+		}
 		gameEndedRef.current = false;
 		hasSeenMovementSinceShotRef.current = false;
-		ballPositionsRef.current = balls.reduce<
+		setBombExploded(false);
+		ballPositionsRef.current = [...balls, ...bombs].reduce<
 			Record<string, [number, number, number]>
-		>((acc, ball) => {
-			acc[ball.id] = ball.position;
+		>((acc, item) => {
+			acc[item.id] = item.position;
 			return acc;
 		}, {});
-	}, [balls, initialBallState]);
+	}, [balls, bombs, initialBallState, initialBombState]);
+
+	useEffect(() => {
+		return () => {
+			if (pendingStrikeTimeoutRef.current !== null) {
+				clearTimeout(pendingStrikeTimeoutRef.current);
+			}
+			if (bombFinalizeTimeoutRef.current !== null) {
+				clearTimeout(bombFinalizeTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	// いずれかのボールが動いているか判定
 	const anyBallMoving = useMemo(
@@ -257,26 +303,69 @@ export default function GameScene() {
 		[cueBallId],
 	);
 
+	const handleBombPocket = useCallback((id: string) => {
+		setMovingBalls((prev) => ({ ...prev, [id]: false }));
+		setBombStates((prev) => {
+			const state = prev[id];
+			if (!state || !state.visible) return prev;
+			return { ...prev, [id]: { visible: false } };
+		});
+	}, []);
+
+	const handleBombExplode = useCallback(
+		(id: string) => {
+			setMovingBalls((prev) => ({ ...prev, [id]: false }));
+			setBombStates((prev) => {
+				const state = prev[id];
+				if (!state || !state.visible) return prev;
+				return { ...prev, [id]: { visible: false } };
+			});
+			setBombExploded(true);
+			if (bombFinalizeTimeoutRef.current !== null) {
+				clearTimeout(bombFinalizeTimeoutRef.current);
+			}
+			bombFinalizeTimeoutRef.current = setTimeout(() => {
+				bombFinalizeTimeoutRef.current = null;
+				finalizeGame(false);
+			}, 2000);
+		},
+		[finalizeGame],
+	);
+
 	const handleBallSelect = useCallback((shoot: ShootFn) => {
 		shootRef.current = shoot;
 		setIsCharging(true);
 	}, []);
 
 	const handleConfirm = useCallback(
-		(power: number) => {
+		(power: number, normalizedPower: number) => {
 			if (shotCount >= shotLimit) return;
-			const didShoot = shootRef.current?.(power) ?? false;
-			shootRef.current = null;
+			shotNormalizedPowerRef.current = normalizedPower;
+			// キューアニメーションを即時トリガー、PowerGaugeも即時非表示
+			setStrikeVersion((prev) => prev + 1);
 			setIsCharging(false);
-			if (!didShoot) return; // ショットが実行されなかった場合は打数を消費しない
-			hasSeenMovementSinceShotRef.current = false;
-			setPendingShotResolution(true);
-			setShotCount((prev) => prev + 1);
+			setIsStrikeAnimating(true);
+			// インパルスと打数消費はアニメーション完了後
+			pendingStrikeTimeoutRef.current = setTimeout(() => {
+				pendingStrikeTimeoutRef.current = null;
+				setIsStrikeAnimating(false);
+				const didShoot = shootRef.current?.(power) ?? false;
+				shootRef.current = null;
+				if (!didShoot) return;
+				hasSeenMovementSinceShotRef.current = false;
+				setPendingShotResolution(true);
+				setShotCount((prev) => prev + 1);
+			}, calcStrikeDuration(normalizedPower) * 1000);
 		},
 		[shotCount, shotLimit],
 	);
 
 	const handleCancel = useCallback(() => {
+		if (pendingStrikeTimeoutRef.current !== null) {
+			clearTimeout(pendingStrikeTimeoutRef.current);
+			pendingStrikeTimeoutRef.current = null;
+			setIsStrikeAnimating(false);
+		}
 		shootRef.current = null;
 		setIsCharging(false);
 	}, []);
@@ -313,7 +402,6 @@ export default function GameScene() {
 
 						{balls.map((ball) => {
 							const state = ballStates[ball.id];
-
 							const isRespawnedCueBall =
 								ball.id === cueBallId && (state?.respawnVersion ?? 0) > 0;
 
@@ -322,7 +410,7 @@ export default function GameScene() {
 									key={ball.id}
 									id={ball.id}
 									textureUrl={ball.textureUrl}
-									position={ballPositionsRef.current[ball.id]}
+									position={ballPositionsRef.current[ball.id] ?? ball.position}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
 									portal={level.portal}
 									accelerationFloors={level.accelerationFloors}
@@ -333,9 +421,11 @@ export default function GameScene() {
 									onMovingChange={handleMovingChange}
 									onPositionChange={handlePositionChange}
 									onPocket={handlePocket}
+									allowMagnet={ball.shootable && magnetEnabled}
 									onSelect={
 										ball.shootable &&
 										!isCharging &&
+										!isStrikeAnimating &&
 										!anyBallMoving &&
 										shotCount < shotLimit
 											? handleBallSelect
@@ -344,6 +434,20 @@ export default function GameScene() {
 								/>
 							);
 						})}
+
+						{bombs.map((bomb) => (
+							<Bomb
+								key={bomb.id}
+								id={bomb.id}
+								position={ballPositionsRef.current[bomb.id] ?? bomb.position}
+								isVisible={bombStates[bomb.id]?.visible ?? true}
+								onExplode={handleBombExplode}
+								onMovingChange={handleMovingChange}
+								onPocket={handleBombPocket}
+								onPositionChange={handlePositionChange}
+							/>
+						))}
+
 						{level.portal && <PortalPair portal={level.portal} />}
 						{level.accelerationFloors?.map((floor) => (
 							<AccelerationFloor
@@ -355,12 +459,24 @@ export default function GameScene() {
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
 				<CameraController isCharging={isCharging} />
+				<Cue
+					ballPositionRef={ballPositionsRef}
+					cueBallId={cueBallId}
+					visible={isCharging && (ballStates[cueBallId]?.visible ?? false)}
+					shotVersion={strikeVersion}
+					shotNormalizedPowerRef={shotNormalizedPowerRef}
+				/>
 				<TrajectoryLineRaycast
 					ballPositionRef={ballPositionsRef}
 					cueBallId={cueBallId}
-					visibleBallIds={balls
-						.filter((b) => b.id !== cueBallId && ballStates[b.id]?.visible)
-						.map((b) => b.id)}
+					visibleBalls={[
+						...balls
+							.filter((b) => b.id !== cueBallId && ballStates[b.id]?.visible)
+							.map((b) => ({ id: b.id, radius: BALL_RADIUS })),
+						...bombs
+							.filter((bomb) => bombStates[bomb.id]?.visible)
+							.map((bomb) => ({ id: bomb.id, radius: BOMB_RADIUS })),
+					]}
 					visible={!anyBallMoving && (ballStates[cueBallId]?.visible ?? false)}
 				/>
 			</Canvas>
@@ -369,6 +485,13 @@ export default function GameScene() {
 					shotCount={shotCount}
 					remainingBalls={remainingTargetBalls}
 				/>
+			)}
+			{bombExploded && (
+				<div className="bomb-flash absolute inset-0 z-20 flex items-center justify-center">
+					<p className="bomb-text text-white text-6xl font-bold drop-shadow-[0_0_24px_rgba(255,120,0,1)]">
+						💥 BOOM!
+					</p>
+				</div>
 			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
