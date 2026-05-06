@@ -225,42 +225,77 @@ export const LEVELS: LevelConfig[] = [
 		],
 	},
 	{
-		id: "level6",
-		name: "Level 6 - Dash Panel Chain",
-		description: "3つの加速床を連鎖させて、サイドポケットに落とそう",
-		shotLimit: 5,
+		id: "level8",
+		name: "Level 8 - Bomb Trap",
+		description: "加速床の罠を避けて3球を20打以内に落とす",
+		shotLimit: 20,
 		cueBallId: "poolballs0",
+		bombs: [
+			{ id: "bomb0", position: [0, 0.2, -1.1] },
+			{ id: "bomb1", position: [0, 0.2, 1.1] },
+		],
 		accelerationFloors: [
+			// 罠1: 爆弾(0, -1.1)を重心とする正三角形の各頂点に配置
+			// 頂点1: テーブル中央側 (0, -0.6) → 爆弾へ [0, 0, -1]
 			{
-				position: [-0.5, 0, 0.5],
-				size: [0.3, 0.3],
-				direction: [1, 0, 0], // +Xへ
-				strength: 7,
+				position: [0, 0, -0.6],
+				size: [0.35, 0.3],
+				direction: [0, 0, -1],
+				strength: 8,
 			},
+			// 頂点2: 左奥 (-0.43, -1.35) → 爆弾へ [0.87, 0, 0.5]
 			{
-				position: [0.6, 0, 0.5],
-				size: [0.3, 0.3],
-				direction: [0, 0, 1], // +Zへ
-				strength: 7,
+				position: [-0.43, 0, -1.35],
+				size: [0.35, 0.3],
+				direction: [0.87, 0, 0.5],
+				strength: 8,
 			},
+			// 頂点3: 右奥 (0.43, -1.35) → 爆弾へ [-0.87, 0, 0.5]
 			{
-				position: [0.6, 0, 1.87],
-				size: [0.3, 0.3],
-				direction: [1, 0, 1], // 斜め45度 (右上コーナーポケットへ)
-				strength: 9, // 最後は少し強めに
+				position: [0.43, 0, -1.35],
+				size: [0.35, 0.3],
+				direction: [-0.87, 0, 0.5],
+				strength: 8,
+			},
+			// 罠2: 爆弾(0, 1.1)を重心とする正三角形の各頂点に配置
+			// 頂点1: テーブル中央側 (0, 0.6) → 爆弾へ [0, 0, 1]
+			{
+				position: [0, 0, 0.6],
+				size: [0.35, 0.3],
+				direction: [0, 0, 1],
+				strength: 8,
+			},
+			// 頂点2: 右奥 (0.43, 1.35) → 爆弾へ [-0.87, 0, -0.5]
+			{
+				position: [0.43, 0, 1.35],
+				size: [0.35, 0.3],
+				direction: [-0.87, 0, -0.5],
+				strength: 8,
+			},
+			// 頂点3: 左奥 (-0.43, 1.35) → 爆弾へ [0.87, 0, -0.5]
+			{
+				position: [-0.43, 0, 1.35],
+				size: [0.35, 0.3],
+				direction: [0.87, 0, -0.5],
+				strength: 8,
 			},
 		],
 		balls: [
 			{
 				id: "poolballs0",
 				textureUrl: poolballs0,
-				position: [-0.5, 0.2, -2.0],
+				position: [-0.9, 0.2, 0],
 				shootable: true,
 			},
 			{
 				id: "poolballs1",
 				textureUrl: poolballs1,
-				position: [-0.5, 0.2, -1.0],
+				position: [0, 0.2, -2.0],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0, 0.2, 2.0],
 			},
 		],
 	},
