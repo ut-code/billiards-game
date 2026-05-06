@@ -16,6 +16,7 @@ import { BOMB_RADIUS, Bomb } from "./components/Bomb";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
 import { Cue } from "./components/Cue";
+import { DividerWall } from "./components/DividerWall";
 import { BlockProvider } from "./components/FillerContextProvider";
 import { GateSwitch } from "./components/GateSwitch";
 import { HoleFiller } from "./components/HoleFiller";
@@ -52,6 +53,7 @@ export default function GameScene() {
 
 	const balls = useMemo(() => level?.balls ?? [], [level]);
 	const bombs = useMemo(() => level?.bombs ?? [], [level]);
+	const portals = useMemo(() => level?.portals ?? [], [level]);
 	const cueBallId = level?.cueBallId ?? "";
 	const shotLimit = level?.shotLimit ?? 0;
 
@@ -383,12 +385,18 @@ export default function GameScene() {
 				<ambientLight intensity={5} />
 				<pointLight position={[10, 10, 10]} />
 				<Suspense>
-					<Physics gravity={[0, -9.8, 0]}>
+					<Physics gravity={[0, -9.8, 0]} stepSize={1 / 120}>
 						<BilliardTable
 							surfaceTextureUrl={level.table?.clothTextureUrl}
 							floorFriction={level.table?.floorFriction}
 							planeColor={level.table?.planeColor}
 						/>
+						{level.dividers?.map((divider) => (
+							<DividerWall
+								key={`${divider.position.join(",")}-${divider.size.join(",")}`}
+								config={divider}
+							/>
+						))}
 						{/* BlockProviderがあるとき、ポケットが埋まる */}
 						{level.gate?.gateEn && (
 							<BlockProvider>
@@ -411,7 +419,7 @@ export default function GameScene() {
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id] ?? ball.position}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
-									portal={level.portal}
+									portals={portals}
 									respawnPosition={
 										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
@@ -446,7 +454,12 @@ export default function GameScene() {
 							/>
 						))}
 
-						{level.portal && <PortalPair portal={level.portal} />}
+						{portals.map((portal) => (
+							<PortalPair
+								portal={portal}
+								key={`${portal.entry.join(",")}-${portal.exit.join(",")}`}
+							/>
+						))}
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
