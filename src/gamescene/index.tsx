@@ -383,7 +383,7 @@ export default function GameScene() {
 				<ambientLight intensity={5} />
 				<pointLight position={[10, 10, 10]} />
 				<Suspense>
-					<Physics gravity={[0, -9.8, 0]}>
+					<Physics gravity={[0, -9.8, 0]} stepSize={1 / 120}>
 						<BilliardTable
 							surfaceTextureUrl={level.table?.clothTextureUrl}
 							floorFriction={level.table?.floorFriction}
