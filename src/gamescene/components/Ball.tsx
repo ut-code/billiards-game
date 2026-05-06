@@ -168,8 +168,7 @@ export function Ball({
 		portalWarpAudioRef.current = new Audio(PORTAL_WARP_SOUND_URL);
 		portalWarpAudioRef.current.volume = 0.35;
 
-		// ダッシュ時の効果音として既存の衝突音などを流用するか、専用の音声をロードする
-		dashAudioRef.current = new Audio("/collision_with_balls.mp3");
+		dashAudioRef.current = new Audio("/acceleration_floor_se.mp3");
 		dashAudioRef.current.volume = 0.5;
 
 		return () => {
