@@ -26,6 +26,7 @@ type BallProps = {
 	onPocket?: (id: string) => void;
 	onPositionChange?: (id: string, position: [number, number, number]) => void;
 	portal?: PortalConfig;
+	portals?: PortalConfig[];
 	allowMagnet?: boolean;
 	accelerationFloors?: AccelerationFloorConfig[];
 };
@@ -52,6 +53,7 @@ export function Ball({
 	onPocket,
 	onPositionChange,
 	portal,
+	portals,
 	allowMagnet,
 	accelerationFloors,
 }: BallProps) {
@@ -215,26 +217,65 @@ export function Ball({
 		const unsubscribe = api.position.subscribe((p) => {
 			onPositionChange?.(id, [p[0], p[1], p[2]]);
 
-			if (portal) {
+			const activePortals = portals ?? (portal ? [portal] : []);
+			if (activePortals.length > 0) {
 				const now = Date.now();
-				const radius = portal.radius ?? 0.12;
 				const position: [number, number, number] = [p[0], p[1], p[2]];
+				for (const portalConfig of activePortals) {
+					const radius = portalConfig.radius ?? 0.12;
+					if (
+						now - lastTeleportAtRef.current > PORTAL_TELEPORT_COOLDOWN_MS &&
+						isInsidePortal(position, portalConfig.entry, radius)
+					) {
+						lastTeleportAtRef.current = now;
+						const velocity = lastVelocityRef.current;
+						api.position.set(portalConfig.exit[0], p[1], portalConfig.exit[2]);
+						api.velocity.set(velocity[0], velocity[1], velocity[2]);
 
-				if (
-					now - lastTeleportAtRef.current > PORTAL_TELEPORT_COOLDOWN_MS &&
-					isInsidePortal(position, portal.entry, radius)
-				) {
-					lastTeleportAtRef.current = now;
-					const velocity = lastVelocityRef.current;
-					api.position.set(portal.exit[0], p[1], portal.exit[2]);
-					api.velocity.set(velocity[0], velocity[1], velocity[2]);
-
-					const portalWarpAudio = portalWarpAudioRef.current;
-					if (portalWarpAudio) {
-						portalWarpAudio.currentTime = 0;
-						void portalWarpAudio.play();
+						const portalWarpAudio = portalWarpAudioRef.current;
+						if (portalWarpAudio) {
+							portalWarpAudio.currentTime = 0;
+							void portalWarpAudio.play();
+						}
+						break;
 					}
 				}
+			}
+
+			if (processedFloors) {
+				processedFloors.forEach((floor) => {
+					const dx = p[0] - floor.position[0];
+					const dz = p[2] - floor.position[2];
+
+					// 事前計算済みの値を使ってローカル座標に変換
+					const localX = dx * floor.cosAngle - dz * floor.sinAngle;
+					const localZ = dx * floor.sinAngle + dz * floor.cosAngle;
+
+					const isInside =
+						Math.abs(localX) <= floor.halfWidth &&
+						Math.abs(localZ) <= floor.halfLength;
+					const wasInside = floorsOnRef.current.has(floor.id);
+
+					if (isInside && !wasInside) {
+						// 床に入った瞬間、速度とスピンを完全に上書きする
+						const dir = floor.normalizedDir;
+
+						// 速度（velocity）を強制上書き。strength を直接のスピードとして扱う
+						api.velocity.set(dir.x * floor.strength, 0, dir.z * floor.strength);
+
+						// 直進後に変なカーブを描かないように、ボールの回転（スピン）をリセット
+						api.angularVelocity.set(0, 0, 0);
+						floorsOnRef.current.add(floor.id);
+
+						if (dashAudioRef.current) {
+							dashAudioRef.current.currentTime = 0;
+							void dashAudioRef.current.play();
+						}
+					} else if (!isInside && wasInside) {
+						// 床から出た
+						floorsOnRef.current.delete(floor.id);
+					}
+				});
 			}
 
 			if (processedFloors) {
@@ -291,6 +332,7 @@ export function Ball({
 		onPocket,
 		onPositionChange,
 		portal,
+		portals,
 		processedFloors,
 		api.angularVelocity,
 	]);

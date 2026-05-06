@@ -8,6 +8,7 @@ import {
 	OFFSET_Y,
 	PLAY_HEIGHT,
 	PLAY_LENGTH,
+	PLAY_WIDTH,
 } from "../components/billiardTable";
 import { SWITCH_SIZE } from "../components/GateSwitch";
 
@@ -35,6 +36,12 @@ export type GateConfig = {
 	gatePos: [number, number, number][];
 };
 
+export type DividerConfig = {
+	position: [number, number, number];
+	size: [number, number, number];
+	color?: string;
+};
+
 export type AccelerationFloorConfig = {
 	id: string;
 	position: [number, number, number];
@@ -49,17 +56,22 @@ export type LevelConfig = {
 	shotLimit: number;
 	description: string;
 	cueBallId: string;
-	portal?: PortalConfig;
+	portals?: PortalConfig[];
 	table?: {
 		clothTextureUrl?: string;
 		floorFriction?: number;
 		planeColor?: string;
 	};
 	gate?: GateConfig;
+	dividers?: DividerConfig[];
 	bombs?: BombSpawnConfig[];
 	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
 };
+
+const DIVIDER_HEIGHT = PLAY_HEIGHT * 1.2;
+const DIVIDER_THICKNESS = PLAY_HEIGHT * 0.6;
+const DIVIDER_Y = (PLAY_HEIGHT + DIVIDER_HEIGHT) / 2 - OFFSET_Y;
 
 export const LEVELS: LevelConfig[] = [
 	{
@@ -93,11 +105,13 @@ export const LEVELS: LevelConfig[] = [
 		description: "3球を7打以内に落とす",
 		shotLimit: 7,
 		cueBallId: "poolballs0",
-		portal: {
-			entry: [-0.25, 0, -0.45],
-			exit: [0.5, 0, 0.55],
-			radius: 0.12,
-		},
+		portals: [
+			{
+				entry: [-0.25, 0, -0.45],
+				exit: [0.5, 0, 0.55],
+				radius: 0.12,
+			},
+		],
 		balls: [
 			{
 				id: "poolballs0",
@@ -222,6 +236,66 @@ export const LEVELS: LevelConfig[] = [
 				id: "poolballs2",
 				textureUrl: poolballs2,
 				position: [0.55, 0.2, 0],
+			},
+		],
+	},
+	{
+		id: "level6",
+		name: "Level 6 - Warp Divide",
+		description: "仕切りを越えるためにワープホールを使う",
+		shotLimit: 9,
+		cueBallId: "poolballs0",
+		portals: [
+			{
+				entry: [-0.3, 0, -PLAY_LENGTH / 3 + 0.1],
+				exit: [0.3, 0, -0.05],
+				radius: 0.14,
+			},
+			{
+				entry: [-0.3, 0, 0.05],
+				exit: [0.3, 0, PLAY_LENGTH / 3 - 0.1],
+				radius: 0.14,
+			},
+			{
+				entry: [-0.3, 0, PLAY_LENGTH / 3 - 0.1],
+				exit: [0.3, 0, -PLAY_LENGTH / 3 + 0.1],
+				radius: 0.14,
+			},
+		],
+		dividers: [
+			{
+				position: [0, DIVIDER_Y, -PLAY_LENGTH / 6],
+				size: [PLAY_WIDTH, DIVIDER_HEIGHT, DIVIDER_THICKNESS],
+				color: "#2b2b2b",
+			},
+			{
+				position: [0, DIVIDER_Y, PLAY_LENGTH / 6],
+				size: [PLAY_WIDTH, DIVIDER_HEIGHT, DIVIDER_THICKNESS],
+				color: "#2b2b2b",
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [0, 0.2, -PLAY_LENGTH / 3 + 0.25],
+				shootable: true,
+			},
+
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [1, 0.2, 0],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [1, 0.2, -2],
+			},
+			{
+				id: "poolballs3",
+				textureUrl: poolballs3,
+				position: [1, 0.2, -PLAY_LENGTH / 3 + 4.0],
 			},
 		],
 	},
