@@ -36,9 +36,10 @@ export type GateConfig = {
 };
 
 export type AccelerationFloorConfig = {
+	id: string;
 	position: [number, number, number];
 	size: [number, number];
-	direction: [number, number, number];
+	direction: [number, number, number]; // Y成分は無視され、XZ平面上の方向のみ有効
 	strength: number;
 };
 
@@ -238,6 +239,7 @@ export const LEVELS: LevelConfig[] = [
 			// 罠1: 爆弾(0, -1.1)を重心とする正三角形の各頂点に配置
 			// 頂点1: テーブル中央側 (0, -0.6) → 爆弾へ [0, 0, -1]
 			{
+				id: "accel-l8-0",
 				position: [0, 0, -0.6],
 				size: [0.35, 0.3],
 				direction: [0, 0, -1],
@@ -245,6 +247,7 @@ export const LEVELS: LevelConfig[] = [
 			},
 			// 頂点2: 左奥 (-0.43, -1.35) → 爆弾へ [0.87, 0, 0.5]
 			{
+				id: "accel-l8-1",
 				position: [-0.43, 0, -1.35],
 				size: [0.35, 0.3],
 				direction: [0.87, 0, 0.5],
@@ -252,6 +255,7 @@ export const LEVELS: LevelConfig[] = [
 			},
 			// 頂点3: 右奥 (0.43, -1.35) → 爆弾へ [-0.87, 0, 0.5]
 			{
+				id: "accel-l8-2",
 				position: [0.43, 0, -1.35],
 				size: [0.35, 0.3],
 				direction: [-0.87, 0, 0.5],
@@ -260,6 +264,7 @@ export const LEVELS: LevelConfig[] = [
 			// 罠2: 爆弾(0, 1.1)を重心とする正三角形の各頂点に配置
 			// 頂点1: テーブル中央側 (0, 0.6) → 爆弾へ [0, 0, 1]
 			{
+				id: "accel-l8-3",
 				position: [0, 0, 0.6],
 				size: [0.35, 0.3],
 				direction: [0, 0, 1],
@@ -267,6 +272,7 @@ export const LEVELS: LevelConfig[] = [
 			},
 			// 頂点2: 右奥 (0.43, 1.35) → 爆弾へ [-0.87, 0, -0.5]
 			{
+				id: "accel-l8-4",
 				position: [0.43, 0, 1.35],
 				size: [0.35, 0.3],
 				direction: [-0.87, 0, -0.5],
@@ -274,6 +280,7 @@ export const LEVELS: LevelConfig[] = [
 			},
 			// 頂点3: 左奥 (-0.43, 1.35) → 爆弾へ [0.87, 0, -0.5]
 			{
+				id: "accel-l8-5",
 				position: [-0.43, 0, 1.35],
 				size: [0.35, 0.3],
 				direction: [0.87, 0, -0.5],

@@ -82,7 +82,7 @@ export function Ball({
 	const hasPocketed = useRef(false);
 	const lastVelocityRef = useRef<[number, number, number]>([0, 0, 0]);
 	const lastTeleportAtRef = useRef(0);
-	const floorsOnRef = useRef<Set<number>>(new Set());
+	const floorsOnRef = useRef<Set<string>>(new Set());
 	const portalWarpAudioRef = useRef<HTMLAudioElement | null>(null);
 	const keys = useRef<Record<string, boolean>>({});
 
@@ -238,7 +238,7 @@ export function Ball({
 			}
 
 			if (processedFloors) {
-				processedFloors.forEach((floor, idx) => {
+				processedFloors.forEach((floor) => {
 					const dx = p[0] - floor.position[0];
 					const dz = p[2] - floor.position[2];
 
@@ -249,7 +249,7 @@ export function Ball({
 					const isInside =
 						Math.abs(localX) <= floor.halfWidth &&
 						Math.abs(localZ) <= floor.halfLength;
-					const wasInside = floorsOnRef.current.has(idx);
+					const wasInside = floorsOnRef.current.has(floor.id);
 
 					if (isInside && !wasInside) {
 						// 床に入った瞬間、速度とスピンを完全に上書きする
@@ -260,7 +260,7 @@ export function Ball({
 
 						// 直進後に変なカーブを描かないように、ボールの回転（スピン）をリセット
 						api.angularVelocity.set(0, 0, 0);
-						floorsOnRef.current.add(idx);
+						floorsOnRef.current.add(floor.id);
 
 						if (dashAudioRef.current) {
 							dashAudioRef.current.currentTime = 0;
@@ -268,7 +268,7 @@ export function Ball({
 						}
 					} else if (!isInside && wasInside) {
 						// 床から出た
-						floorsOnRef.current.delete(idx);
+						floorsOnRef.current.delete(floor.id);
 					}
 				});
 			}
