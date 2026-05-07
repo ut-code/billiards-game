@@ -324,7 +324,7 @@ export const LEVELS: LevelConfig[] = [
 		id: "level7",
 		name: "Level 7 - Magnet Control",
 		description: "ボールをまげて加速床を避ける",
-		shotLimit: 10,
+		shotLimit: 7,
 		cueBallId: "poolballs0",
 		accelerationFloors: [
 			{
