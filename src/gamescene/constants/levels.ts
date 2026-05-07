@@ -67,6 +67,7 @@ export type LevelConfig = {
 	};
 	gate?: GateConfig;
 	dividers?: DividerConfig[];
+	magnetEn?: boolean;
 	bombs?: BombSpawnConfig[];
 	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
@@ -324,8 +325,11 @@ export const LEVELS: LevelConfig[] = [
 		id: "level7",
 		name: "Level 7 - Magnet Control",
 		description: "ボールをまげて加速床を避ける",
+		gimmic:
+			"マグネットコントロールが使えます。\nA/Dで左/右にボールを曲げられます。\n加速床を避けてボールを落とそう!",
 		shotLimit: 7,
 		cueBallId: "poolballs0",
+		magnetEn: true,
 		accelerationFloors: [
 			{
 				id: "accel-l8-0",
