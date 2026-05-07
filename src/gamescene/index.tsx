@@ -9,6 +9,8 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { IoInformationCircleOutline } from "react-icons/io5";
+import { PiMagnetFill } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
 import { AccelerationFloor } from "./components/AccelerationFloor";
@@ -27,6 +29,7 @@ import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
 import { getLevelConfig } from "./constants/levels";
 import { BALL_RADIUS, calcStrikeDuration } from "./constants/physics";
+import { StartModal } from "./gimmicDocs/StartModal";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallState = {
@@ -103,7 +106,31 @@ export default function GameScene() {
 	const [pendingShotResolution, setPendingShotResolution] = useState(false);
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
 	const [bombStates, setBombStates] = useState<Record<string, BombState>>({});
+	const [isStartModalOpen, setIsStartModalOpen] = useState(true);
 	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
+	const [pressedKey, setPressedKey] = useState<string | null>(null);
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			const key = e.key.toLowerCase();
+			if (key === "a" || key === "d") {
+				setPressedKey(key);
+			}
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			const key = e.key.toLowerCase();
+			if (key === "a" || key === "d") {
+				setPressedKey(null);
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
+		};
+	}, []);
+
 	const ballPositionsRef = useRef<Record<string, [number, number, number]>>({});
 	const gameEndedRef = useRef(false);
 	const hasSeenMovementSinceShotRef = useRef(false);
@@ -112,6 +139,7 @@ export default function GameScene() {
 		setBallStates(initialBallState);
 		setBombStates(initialBombState);
 		setMovingBalls({});
+		setIsStartModalOpen(true);
 		setIsCharging(false);
 		setShowRoundStart(false);
 		setShotCount(0);
@@ -432,6 +460,7 @@ export default function GameScene() {
 									allowMagnet={ball.shootable && magnetEnabled}
 									onSelect={
 										ball.shootable &&
+										!isStartModalOpen &&
 										!isCharging &&
 										!isStrikeAnimating &&
 										!anyBallMoving &&
@@ -499,6 +528,25 @@ export default function GameScene() {
 					remainingBalls={remainingTargetBalls}
 				/>
 			)}
+			{isStartModalOpen && (
+				<StartModal
+					title={level.name}
+					description={
+						level.gimmic ?? "全てのターゲットをポケットに落としてください。"
+					}
+					onClose={() => setIsStartModalOpen(false)}
+				/>
+			)}
+			{!isStartModalOpen && (
+				<button
+					type="button"
+					onClick={() => setIsStartModalOpen(true)}
+					className="absolute bottom-8 left-8 z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
+					title="ミッション詳細を表示"
+				>
+					<IoInformationCircleOutline />
+				</button>
+			)}
 			{bombExploded && (
 				<div className="bomb-flash absolute inset-0 z-20 flex items-center justify-center">
 					<p className="bomb-text text-white text-6xl font-bold drop-shadow-[0_0_24px_rgba(255,120,0,1)]">
@@ -508,6 +556,23 @@ export default function GameScene() {
 			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
+			)}
+			{magnetEnabled && (
+				<div className="absolute bottom-8 right-8 z-10 flex items-center gap-3">
+					<div
+						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "a" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+					>
+						←
+					</div>
+					<div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-3xl shadow-lg backdrop-blur-sm">
+						<PiMagnetFill />
+					</div>
+					<div
+						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "d" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+					>
+						→
+					</div>
+				</div>
 			)}
 		</div>
 	);

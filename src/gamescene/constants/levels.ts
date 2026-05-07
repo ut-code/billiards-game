@@ -3,6 +3,8 @@ import poolballs1 from "@/assets/ballTexture/poolballs1.png";
 import poolballs2 from "@/assets/ballTexture/poolballs2.png";
 import poolballs3 from "@/assets/ballTexture/poolballs3.png";
 import poolballs4 from "@/assets/ballTexture/poolballs4.png";
+import poolballs5 from "@/assets/ballTexture/poolballs5.png";
+import poolballs6 from "@/assets/ballTexture/poolballs6.png";
 import tableIce from "@/assets/tableTexture/tableIce.svg";
 import {
 	OFFSET_Y,
@@ -55,6 +57,7 @@ export type LevelConfig = {
 	name: string;
 	shotLimit: number;
 	description: string;
+	gimmic?: string;
 	cueBallId: string;
 	portals?: PortalConfig[];
 	table?: {
@@ -102,16 +105,9 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level2",
 		name: "Level 2",
-		description: "3球を7打以内に落とす",
-		shotLimit: 7,
+		description: "5球を15打以内に落とす",
+		shotLimit: 15,
 		cueBallId: "poolballs0",
-		portals: [
-			{
-				entry: [-0.25, 0, -0.45],
-				exit: [0.5, 0, 0.55],
-				radius: 0.12,
-			},
-		],
 		balls: [
 			{
 				id: "poolballs0",
@@ -122,25 +118,36 @@ export const LEVELS: LevelConfig[] = [
 			{
 				id: "poolballs1",
 				textureUrl: poolballs1,
-				position: [0.12, 0.2, 0],
+				position: [0.25, 0.2, -0.1],
 			},
 			{
 				id: "poolballs2",
 				textureUrl: poolballs2,
-				position: [0.25, 0.2, 0],
+				position: [0.25, 0.2, 0.1],
 			},
 			{
 				id: "poolballs3",
 				textureUrl: poolballs3,
 				position: [0.38, 0.2, 0],
 			},
+			{
+				id: "poolballs4",
+				textureUrl: poolballs4,
+				position: [0.5, 0.2, 0.5],
+			},
+			{
+				id: "poolballs5",
+				textureUrl: poolballs5,
+				position: [0.5, 0.2, -0.5],
+			},
 		],
 	},
 	{
 		id: "level3",
 		name: "Level 3 - Ice Floor",
-		description: "氷の床で4球を8打以内に落とす",
-		shotLimit: 8,
+		description: "氷の床で6球を15打以内に落とす",
+		gimmic: "氷の床のため、滑りやすくなっています",
+		shotLimit: 15,
 		cueBallId: "poolballs0",
 		table: {
 			clothTextureUrl: tableIce,
@@ -151,35 +158,47 @@ export const LEVELS: LevelConfig[] = [
 			{
 				id: "poolballs0",
 				textureUrl: poolballs0,
-				position: [-0.8, 0.2, 0],
+				position: [0, 0.2, 0],
 				shootable: true,
 			},
 			{
 				id: "poolballs1",
 				textureUrl: poolballs1,
-				position: [0.15, 0.2, -0.2],
+				position: [0.2, 0.2, -0.07],
 			},
 			{
 				id: "poolballs2",
 				textureUrl: poolballs2,
-				position: [0.32, 0.2, 0],
+				position: [-0.2, 0.2, 0.07],
 			},
 			{
 				id: "poolballs3",
 				textureUrl: poolballs3,
-				position: [0.15, 0.2, 0.2],
+				position: [0.2, 0.2, 0.07],
 			},
 			{
 				id: "poolballs4",
 				textureUrl: poolballs4,
-				position: [0.52, 0.2, 0],
+				position: [-0.2, 0.2, -0.07],
+			},
+			{
+				id: "poolballs5",
+				textureUrl: poolballs5,
+				position: [0.3, 0.2, 0],
+			},
+			{
+				id: "poolballs6",
+				textureUrl: poolballs6,
+				position: [-0.3, 0.2, 0],
 			},
 		],
 	},
 	{
 		id: "level4",
 		name: "Level 4 - Switch Gate",
-		description: "3球を10打以内に落とす",
+		description: "スイッチを起動させ3球を15打以内に落とす",
+		gimmic:
+			"動いているスイッチに球を強くぶつけると、\nポケットが1分間開きます\n開いたすきを狙ってボールをすべて落としてください",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		gate: {
@@ -217,6 +236,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level5",
 		name: "Level 5 - Bomb!",
 		description: "爆弾を避けて2球を5打以内に落とす",
+		gimmic:
+			"爆弾に触ると爆発してゲームオーバーになります。\n爆弾に触らないように気を付けよう!",
 		shotLimit: 5,
 		cueBallId: "poolballs0",
 		bombs: [{ id: "bomb0", position: [0.2, 0.2, -0.5] }],
