@@ -58,6 +58,7 @@ export default function GameScene() {
 	const balls = useMemo(() => level?.balls ?? [], [level]);
 	const bombs = useMemo(() => level?.bombs ?? [], [level]);
 	const portals = useMemo(() => level?.portals ?? [], [level]);
+	const magnetEnabled = useMemo(() => level?.magnetEn ?? false, [level]);
 	const cueBallId = level?.cueBallId ?? "";
 	const shotLimit = level?.shotLimit ?? 0;
 
@@ -107,7 +108,6 @@ export default function GameScene() {
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
 	const [bombStates, setBombStates] = useState<Record<string, BombState>>({});
 	const [isStartModalOpen, setIsStartModalOpen] = useState(true);
-	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
 	const [pressedKey, setPressedKey] = useState<string | null>(null);
 
 	useEffect(() => {

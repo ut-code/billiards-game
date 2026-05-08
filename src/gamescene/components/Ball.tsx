@@ -129,18 +129,12 @@ export function Ball({
 			// Y軸を中心に回転させることで、水平方向の軌道を曲げます。
 			direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
 
-			// 3. 速度依存の減衰の適用
-			// 速度が速いほど操作時の抵抗を強くし、不自然な加速を完全に封じます。
-			const dragIntensity = 0.004 * speed; // 速度に比例した抵抗値
-			const controlDrag = Math.max(0.9, 0.992 - dragIntensity);
-			const newSpeed = speed * controlDrag;
-
 			// 4. 物理エンジンへの反映 (Velocityを直接上書き)
 			// applyForceではなく、直接速度を設定することで、より直接的な制御になります。
 			api.velocity.set(
-				direction.x * newSpeed,
+				direction.x * speed,
 				vy, // Y軸方向の速度は維持
-				direction.z * newSpeed,
+				direction.z * speed,
 			);
 		}
 	});

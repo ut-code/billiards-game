@@ -67,6 +67,7 @@ export type LevelConfig = {
 	};
 	gate?: GateConfig;
 	dividers?: DividerConfig[];
+	magnetEn?: boolean;
 	bombs?: BombSpawnConfig[];
 	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
@@ -317,6 +318,144 @@ export const LEVELS: LevelConfig[] = [
 				id: "poolballs3",
 				textureUrl: poolballs3,
 				position: [1, 0.2, -PLAY_LENGTH / 3 + 4.0],
+			},
+		],
+	},
+	{
+		id: "level7",
+		name: "Level 7 - Magnet Control",
+		description: "ボールをまげて加速床を避ける",
+		gimmic:
+			"マグネットコントロールが使えます。\nA/Dで左/右にボールを曲げられます。\n加速床を避けてボールを落とそう!",
+		shotLimit: 7,
+		cueBallId: "poolballs0",
+		magnetEn: true,
+		accelerationFloors: [
+			{
+				id: "accel-l8-0",
+				position: [0, 0, 2.4],
+				size: [1, 0.3],
+				direction: [0, 0, -1],
+				strength: 2,
+			},
+			{
+				id: "accel-l8-1",
+				position: [0, 0, -2.4],
+				size: [1, 0.3],
+				direction: [0, 0, 1],
+				strength: 2,
+			},
+			{
+				id: "accel-l8-2",
+				position: [0.5, 0, 1.5],
+				size: [0.5, 0.3],
+				direction: [-1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-3",
+				position: [-0.5, 0, 1.5],
+				size: [0.5, 0.3],
+				direction: [1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-4",
+				position: [0.5, 0, -1.5],
+				size: [0.5, 0.3],
+				direction: [-1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-5",
+				position: [-0.5, 0, -1.5],
+				size: [0.5, 0.3],
+				direction: [1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-6",
+				position: [0.75, 0, 0.5],
+				size: [0.25, 0.25],
+				direction: [1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-7",
+				position: [0.75, 0, -0.5],
+				size: [0.25, 0.25],
+				direction: [1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-6",
+				position: [-0.75, 0, 0.5],
+				size: [0.25, 0.25],
+				direction: [-1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-7",
+				position: [-0.75, 0, -0.5],
+				size: [0.25, 0.25],
+				direction: [-1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-8",
+				position: [-0.25, 0, 0.25],
+				size: [0.1, 0.25],
+				direction: [-1, 0, 2],
+				strength: 4,
+			},
+			{
+				id: "accel-l8-9",
+				position: [-0.25, 0, -0.25],
+				size: [0.1, 0.25],
+				direction: [-1, 0, -2],
+				strength: 4,
+			},
+			{
+				id: "accel-l8-10",
+				position: [0.25, 0, 0.25],
+				size: [0.1, 0.25],
+				direction: [1, 0, 2],
+				strength: 4,
+			},
+			{
+				id: "accel-l8-11",
+				position: [0.25, 0, -0.25],
+				size: [0.1, 0.25],
+				direction: [1, 0, -2],
+				strength: 4,
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.9, 0.2, 0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0, 0.2, 0.5],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0, 0.2, -0.5],
+			},
+			{
+				id: "poolballs3",
+				textureUrl: poolballs3,
+				position: [0, 0.2, 1],
+			},
+			{
+				id: "poolballs4",
+				textureUrl: poolballs4,
+				position: [0, 0.2, -1],
 			},
 		],
 	},
