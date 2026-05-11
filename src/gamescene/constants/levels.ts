@@ -147,7 +147,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level3",
 		name: "Level 3 - Ice Floor",
 		description: "氷の床で6球を15打以内に落とす",
-		gimmic: "氷の床のため、滑りやすくなっています",
+		gimmic:
+			"氷の床のため摩擦がほとんどなく、ボールが止まりにくくなっています。\n丁寧なショットでコントロールしよう！",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		table: {
@@ -199,7 +200,7 @@ export const LEVELS: LevelConfig[] = [
 		name: "Level 4 - Switch Gate",
 		description: "スイッチを起動させ3球を15打以内に落とす",
 		gimmic:
-			"動いているスイッチに球を強くぶつけると、\nポケットが1分間開きます\n開いたすきを狙ってボールをすべて落としてください",
+			"動いているスイッチに球を強くぶつけると、\nポケットが1分間開きます。\n開いたすきを狙ってボールをすべて落とそう！",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		gate: {
@@ -275,6 +276,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level6",
 		name: "Level 6 - Warp Divide",
 		description: "仕切りを越えるためにワープホールを使う",
+		gimmic:
+			"テーブルが2枚の仕切りで3つのエリアに分断されています。\nワープホールに入ると別のエリアへ移動できます。\nワープを活用して全エリアのボールをポケットに落とそう！",
 		shotLimit: 9,
 		cueBallId: "poolballs0",
 		portals: [
@@ -334,9 +337,9 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level7",
 		name: "Level 7 - Magnet Control",
-		description: "ボールをまげて加速床を避ける",
+		description: "ボールを曲げて加速床を避ける",
 		gimmic:
-			"マグネットコントロールが使えます。\nA/Dで左/右にボールを曲げられます。\n加速床を避けてボールを落とそう!",
+			"磁石の力でボールの軌道を操作できます。\nショット中にA/Dキーを押すと左右に曲げられます。\n光る床（加速床）に乗ると弾き飛ばされるので、\nうまく避けてボールを落とそう！",
 		shotLimit: 7,
 		cueBallId: "poolballs0",
 		magnetEn: true,
@@ -473,6 +476,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level8",
 		name: "Level 8 - Bomb Trap",
 		description: "加速床の罠を避けて3球を20打以内に落とす",
+		gimmic:
+			"爆弾の周囲に加速床が三角形に配置されており、\n乗ると爆弾へ向かって押し出されてしまいます。\n加速床を踏まないように気をつけよう！",
 		shotLimit: 20,
 		cueBallId: "poolballs0",
 		bombs: [
