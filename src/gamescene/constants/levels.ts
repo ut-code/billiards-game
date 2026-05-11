@@ -236,7 +236,7 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level5",
 		name: "Level 5 - Bomb!",
-		description: "爆弾を避けて3球を7打以内に落とす",
+		description: "爆弾を避けて3球を20打以内に落とす",
 		gimmic:
 			"爆弾に触ると爆発してゲームオーバーになります。\n爆弾に触らないように気を付けよう!",
 		shotLimit: 20,
