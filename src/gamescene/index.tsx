@@ -9,13 +9,17 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { IoInformationCircleOutline } from "react-icons/io5";
+import { PiMagnetFill } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
+import { AccelerationFloor } from "./components/AccelerationFloor";
 import { Ball, type ShootFn } from "./components/Ball";
 import { BOMB_RADIUS, Bomb } from "./components/Bomb";
 import { BilliardTable } from "./components/billiardTable";
 import { CameraController } from "./components/CameraController";
 import { Cue } from "./components/Cue";
+import { DividerWall } from "./components/DividerWall";
 import { BlockProvider } from "./components/FillerContextProvider";
 import { GateSwitch } from "./components/GateSwitch";
 import { HoleFiller } from "./components/HoleFiller";
@@ -25,6 +29,7 @@ import { StartBanner } from "./components/StartBanner";
 import { TrajectoryLineRaycast } from "./components/TrajectoryLineRaycast";
 import { getLevelConfig } from "./constants/levels";
 import { BALL_RADIUS, calcStrikeDuration } from "./constants/physics";
+import { StartModal } from "./gimmicDocs/StartModal";
 import { findCueRespawnPosition } from "./utils/cueRespawn";
 
 type BallState = {
@@ -52,6 +57,8 @@ export default function GameScene() {
 
 	const balls = useMemo(() => level?.balls ?? [], [level]);
 	const bombs = useMemo(() => level?.bombs ?? [], [level]);
+	const portals = useMemo(() => level?.portals ?? [], [level]);
+	const magnetEnabled = useMemo(() => level?.magnetEn ?? false, [level]);
 	const cueBallId = level?.cueBallId ?? "";
 	const shotLimit = level?.shotLimit ?? 0;
 
@@ -100,7 +107,30 @@ export default function GameScene() {
 	const [pendingShotResolution, setPendingShotResolution] = useState(false);
 	const [ballStates, setBallStates] = useState<Record<string, BallState>>({});
 	const [bombStates, setBombStates] = useState<Record<string, BombState>>({});
-	const [magnetEnabled] = useState(true); // マグネットコントロールのフラグ
+	const [isStartModalOpen, setIsStartModalOpen] = useState(true);
+	const [pressedKey, setPressedKey] = useState<string | null>(null);
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			const key = e.key.toLowerCase();
+			if (key === "a" || key === "d") {
+				setPressedKey(key);
+			}
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			const key = e.key.toLowerCase();
+			if (key === "a" || key === "d") {
+				setPressedKey(null);
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
+		};
+	}, []);
+
 	const ballPositionsRef = useRef<Record<string, [number, number, number]>>({});
 	const gameEndedRef = useRef(false);
 	const hasSeenMovementSinceShotRef = useRef(false);
@@ -109,6 +139,7 @@ export default function GameScene() {
 		setBallStates(initialBallState);
 		setBombStates(initialBombState);
 		setMovingBalls({});
+		setIsStartModalOpen(true);
 		setIsCharging(false);
 		setShowRoundStart(false);
 		setShotCount(0);
@@ -383,12 +414,18 @@ export default function GameScene() {
 				<ambientLight intensity={5} />
 				<pointLight position={[10, 10, 10]} />
 				<Suspense>
-					<Physics gravity={[0, -9.8, 0]}>
+					<Physics gravity={[0, -9.8, 0]} stepSize={1 / 120}>
 						<BilliardTable
 							surfaceTextureUrl={level.table?.clothTextureUrl}
 							floorFriction={level.table?.floorFriction}
 							planeColor={level.table?.planeColor}
 						/>
+						{level.dividers?.map((divider) => (
+							<DividerWall
+								key={`${divider.position.join(",")}-${divider.size.join(",")}`}
+								config={divider}
+							/>
+						))}
 						{/* BlockProviderがあるとき、ポケットが埋まる */}
 						{level.gate?.gateEn && (
 							<BlockProvider>
@@ -411,7 +448,8 @@ export default function GameScene() {
 									textureUrl={ball.textureUrl}
 									position={ballPositionsRef.current[ball.id] ?? ball.position}
 									velocity={isRespawnedCueBall ? [0, 0, 0] : ball.velocity}
-									portal={level.portal}
+									portals={portals}
+									accelerationFloors={level.accelerationFloors}
 									respawnPosition={
 										ball.id === cueBallId ? state?.respawnPosition : undefined
 									}
@@ -422,6 +460,7 @@ export default function GameScene() {
 									allowMagnet={ball.shootable && magnetEnabled}
 									onSelect={
 										ball.shootable &&
+										!isStartModalOpen &&
 										!isCharging &&
 										!isStrikeAnimating &&
 										!anyBallMoving &&
@@ -446,7 +485,18 @@ export default function GameScene() {
 							/>
 						))}
 
-						{level.portal && <PortalPair portal={level.portal} />}
+						{portals.map((portal) => (
+							<PortalPair
+								portal={portal}
+								key={`${portal.entry.join(",")}-${portal.exit.join(",")}`}
+							/>
+						))}
+						{level.accelerationFloors?.map((floor) => (
+							<AccelerationFloor
+								key={`accel-floor-${floor.position.join("-")}`}
+								config={floor}
+							/>
+						))}
 					</Physics>
 					<Environment files={billiardHallHdr} background />
 				</Suspense>
@@ -478,6 +528,25 @@ export default function GameScene() {
 					remainingBalls={remainingTargetBalls}
 				/>
 			)}
+			{isStartModalOpen && (
+				<StartModal
+					title={level.name}
+					description={
+						level.gimmic ?? "全てのターゲットをポケットに落としてください。"
+					}
+					onClose={() => setIsStartModalOpen(false)}
+				/>
+			)}
+			{!isStartModalOpen && (
+				<button
+					type="button"
+					onClick={() => setIsStartModalOpen(true)}
+					className="absolute bottom-8 left-8 z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
+					title="ミッション詳細を表示"
+				>
+					<IoInformationCircleOutline />
+				</button>
+			)}
 			{bombExploded && (
 				<div className="bomb-flash absolute inset-0 z-20 flex items-center justify-center">
 					<p className="bomb-text text-white text-6xl font-bold drop-shadow-[0_0_24px_rgba(255,120,0,1)]">
@@ -487,6 +556,23 @@ export default function GameScene() {
 			)}
 			{isCharging && (
 				<PowerGauge onConfirm={handleConfirm} onCancel={handleCancel} />
+			)}
+			{magnetEnabled && (
+				<div className="absolute bottom-8 right-8 z-10 flex items-center gap-3">
+					<div
+						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "a" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+					>
+						←
+					</div>
+					<div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-3xl shadow-lg backdrop-blur-sm">
+						<PiMagnetFill />
+					</div>
+					<div
+						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "d" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+					>
+						→
+					</div>
+				</div>
 			)}
 		</div>
 	);

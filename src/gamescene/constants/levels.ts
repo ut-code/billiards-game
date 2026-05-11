@@ -3,11 +3,14 @@ import poolballs1 from "@/assets/ballTexture/poolballs1.png";
 import poolballs2 from "@/assets/ballTexture/poolballs2.png";
 import poolballs3 from "@/assets/ballTexture/poolballs3.png";
 import poolballs4 from "@/assets/ballTexture/poolballs4.png";
+import poolballs5 from "@/assets/ballTexture/poolballs5.png";
+import poolballs6 from "@/assets/ballTexture/poolballs6.png";
 import tableIce from "@/assets/tableTexture/tableIce.svg";
 import {
 	OFFSET_Y,
 	PLAY_HEIGHT,
 	PLAY_LENGTH,
+	PLAY_WIDTH,
 } from "../components/billiardTable";
 import { SWITCH_SIZE } from "../components/GateSwitch";
 
@@ -35,22 +38,44 @@ export type GateConfig = {
 	gatePos: [number, number, number][];
 };
 
+export type DividerConfig = {
+	position: [number, number, number];
+	size: [number, number, number];
+	color?: string;
+};
+
+export type AccelerationFloorConfig = {
+	id: string;
+	position: [number, number, number];
+	size: [number, number];
+	direction: [number, number, number]; // Y成分は無視され、XZ平面上の方向のみ有効
+	strength: number;
+};
+
 export type LevelConfig = {
 	id: string;
 	name: string;
 	shotLimit: number;
 	description: string;
+	gimmic?: string;
 	cueBallId: string;
-	portal?: PortalConfig;
+	portals?: PortalConfig[];
 	table?: {
 		clothTextureUrl?: string;
 		floorFriction?: number;
 		planeColor?: string;
 	};
 	gate?: GateConfig;
+	dividers?: DividerConfig[];
+	magnetEn?: boolean;
 	bombs?: BombSpawnConfig[];
+	accelerationFloors?: AccelerationFloorConfig[];
 	balls: BallSpawnConfig[];
 };
+
+const DIVIDER_HEIGHT = PLAY_HEIGHT * 1.2;
+const DIVIDER_THICKNESS = PLAY_HEIGHT * 0.6;
+const DIVIDER_Y = (PLAY_HEIGHT + DIVIDER_HEIGHT) / 2 - OFFSET_Y;
 
 export const LEVELS: LevelConfig[] = [
 	{
@@ -81,14 +106,9 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level2",
 		name: "Level 2",
-		description: "3球を7打以内に落とす",
-		shotLimit: 7,
+		description: "5球を15打以内に落とす",
+		shotLimit: 15,
 		cueBallId: "poolballs0",
-		portal: {
-			entry: [-0.25, 0, -0.45],
-			exit: [0.5, 0, 0.55],
-			radius: 0.12,
-		},
 		balls: [
 			{
 				id: "poolballs0",
@@ -99,25 +119,36 @@ export const LEVELS: LevelConfig[] = [
 			{
 				id: "poolballs1",
 				textureUrl: poolballs1,
-				position: [0.12, 0.2, 0],
+				position: [0.25, 0.2, -0.1],
 			},
 			{
 				id: "poolballs2",
 				textureUrl: poolballs2,
-				position: [0.25, 0.2, 0],
+				position: [0.25, 0.2, 0.1],
 			},
 			{
 				id: "poolballs3",
 				textureUrl: poolballs3,
 				position: [0.38, 0.2, 0],
 			},
+			{
+				id: "poolballs4",
+				textureUrl: poolballs4,
+				position: [0.5, 0.2, 0.5],
+			},
+			{
+				id: "poolballs5",
+				textureUrl: poolballs5,
+				position: [0.5, 0.2, -0.5],
+			},
 		],
 	},
 	{
 		id: "level3",
 		name: "Level 3 - Ice Floor",
-		description: "氷の床で4球を8打以内に落とす",
-		shotLimit: 8,
+		description: "氷の床で6球を15打以内に落とす",
+		gimmic: "氷の床のため、滑りやすくなっています",
+		shotLimit: 15,
 		cueBallId: "poolballs0",
 		table: {
 			clothTextureUrl: tableIce,
@@ -128,35 +159,47 @@ export const LEVELS: LevelConfig[] = [
 			{
 				id: "poolballs0",
 				textureUrl: poolballs0,
-				position: [-0.8, 0.2, 0],
+				position: [0, 0.2, 0],
 				shootable: true,
 			},
 			{
 				id: "poolballs1",
 				textureUrl: poolballs1,
-				position: [0.15, 0.2, -0.2],
+				position: [0.2, 0.2, -0.07],
 			},
 			{
 				id: "poolballs2",
 				textureUrl: poolballs2,
-				position: [0.32, 0.2, 0],
+				position: [-0.2, 0.2, 0.07],
 			},
 			{
 				id: "poolballs3",
 				textureUrl: poolballs3,
-				position: [0.15, 0.2, 0.2],
+				position: [0.2, 0.2, 0.07],
 			},
 			{
 				id: "poolballs4",
 				textureUrl: poolballs4,
-				position: [0.52, 0.2, 0],
+				position: [-0.2, 0.2, -0.07],
+			},
+			{
+				id: "poolballs5",
+				textureUrl: poolballs5,
+				position: [0.3, 0.2, 0],
+			},
+			{
+				id: "poolballs6",
+				textureUrl: poolballs6,
+				position: [-0.3, 0.2, 0],
 			},
 		],
 	},
 	{
 		id: "level4",
 		name: "Level 4 - Switch Gate",
-		description: "3球を10打以内に落とす",
+		description: "スイッチを起動させ3球を15打以内に落とす",
+		gimmic:
+			"動いているスイッチに球を強くぶつけると、\nポケットが1分間開きます\n開いたすきを狙ってボールをすべて落としてください",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		gate: {
@@ -194,6 +237,8 @@ export const LEVELS: LevelConfig[] = [
 		id: "level5",
 		name: "Level 5 - Bomb!",
 		description: "爆弾を避けて3球を7打以内に落とす",
+		gimmic:
+			"爆弾に触ると爆発してゲームオーバーになります。\n爆弾に触らないように気を付けよう!",
 		shotLimit: 20,
 		cueBallId: "poolballs0",
 		bombs: [
@@ -223,6 +268,285 @@ export const LEVELS: LevelConfig[] = [
 				id: "poolballs3",
 				textureUrl: poolballs3,
 				position: [-0.1, 0.2, 1.8],
+			},
+		],
+	},
+	{
+		id: "level6",
+		name: "Level 6 - Warp Divide",
+		description: "仕切りを越えるためにワープホールを使う",
+		shotLimit: 9,
+		cueBallId: "poolballs0",
+		portals: [
+			{
+				entry: [-0.3, 0, -PLAY_LENGTH / 3 + 0.1],
+				exit: [0.3, 0, -0.05],
+				radius: 0.14,
+			},
+			{
+				entry: [-0.3, 0, 0.05],
+				exit: [0.3, 0, PLAY_LENGTH / 3 - 0.1],
+				radius: 0.14,
+			},
+			{
+				entry: [-0.3, 0, PLAY_LENGTH / 3 - 0.1],
+				exit: [0.3, 0, -PLAY_LENGTH / 3 + 0.1],
+				radius: 0.14,
+			},
+		],
+		dividers: [
+			{
+				position: [0, DIVIDER_Y, -PLAY_LENGTH / 6],
+				size: [PLAY_WIDTH, DIVIDER_HEIGHT, DIVIDER_THICKNESS],
+				color: "#2b2b2b",
+			},
+			{
+				position: [0, DIVIDER_Y, PLAY_LENGTH / 6],
+				size: [PLAY_WIDTH, DIVIDER_HEIGHT, DIVIDER_THICKNESS],
+				color: "#2b2b2b",
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [0, 0.2, -PLAY_LENGTH / 3 + 0.25],
+				shootable: true,
+			},
+
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [1, 0.2, 0],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [1, 0.2, -2],
+			},
+			{
+				id: "poolballs3",
+				textureUrl: poolballs3,
+				position: [1, 0.2, -PLAY_LENGTH / 3 + 4.0],
+			},
+		],
+	},
+	{
+		id: "level7",
+		name: "Level 7 - Magnet Control",
+		description: "ボールをまげて加速床を避ける",
+		gimmic:
+			"マグネットコントロールが使えます。\nA/Dで左/右にボールを曲げられます。\n加速床を避けてボールを落とそう!",
+		shotLimit: 7,
+		cueBallId: "poolballs0",
+		magnetEn: true,
+		accelerationFloors: [
+			{
+				id: "accel-l8-0",
+				position: [0, 0, 2.4],
+				size: [1, 0.3],
+				direction: [0, 0, -1],
+				strength: 2,
+			},
+			{
+				id: "accel-l8-1",
+				position: [0, 0, -2.4],
+				size: [1, 0.3],
+				direction: [0, 0, 1],
+				strength: 2,
+			},
+			{
+				id: "accel-l8-2",
+				position: [0.5, 0, 1.5],
+				size: [0.5, 0.3],
+				direction: [-1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-3",
+				position: [-0.5, 0, 1.5],
+				size: [0.5, 0.3],
+				direction: [1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-4",
+				position: [0.5, 0, -1.5],
+				size: [0.5, 0.3],
+				direction: [-1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-5",
+				position: [-0.5, 0, -1.5],
+				size: [0.5, 0.3],
+				direction: [1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-6",
+				position: [0.75, 0, 0.5],
+				size: [0.25, 0.25],
+				direction: [1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-7",
+				position: [0.75, 0, -0.5],
+				size: [0.25, 0.25],
+				direction: [1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-6",
+				position: [-0.75, 0, 0.5],
+				size: [0.25, 0.25],
+				direction: [-1, 0, -1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-7",
+				position: [-0.75, 0, -0.5],
+				size: [0.25, 0.25],
+				direction: [-1, 0, 1],
+				strength: 8,
+			},
+			{
+				id: "accel-l8-8",
+				position: [-0.25, 0, 0.25],
+				size: [0.1, 0.25],
+				direction: [-1, 0, 2],
+				strength: 4,
+			},
+			{
+				id: "accel-l8-9",
+				position: [-0.25, 0, -0.25],
+				size: [0.1, 0.25],
+				direction: [-1, 0, -2],
+				strength: 4,
+			},
+			{
+				id: "accel-l8-10",
+				position: [0.25, 0, 0.25],
+				size: [0.1, 0.25],
+				direction: [1, 0, 2],
+				strength: 4,
+			},
+			{
+				id: "accel-l8-11",
+				position: [0.25, 0, -0.25],
+				size: [0.1, 0.25],
+				direction: [1, 0, -2],
+				strength: 4,
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.9, 0.2, 0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0, 0.2, 0.5],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0, 0.2, -0.5],
+			},
+			{
+				id: "poolballs3",
+				textureUrl: poolballs3,
+				position: [0, 0.2, 1],
+			},
+			{
+				id: "poolballs4",
+				textureUrl: poolballs4,
+				position: [0, 0.2, -1],
+			},
+		],
+	},
+	{
+		id: "level8",
+		name: "Level 8 - Bomb Trap",
+		description: "加速床の罠を避けて3球を20打以内に落とす",
+		shotLimit: 20,
+		cueBallId: "poolballs0",
+		bombs: [
+			{ id: "bomb0", position: [0, 0.2, -1.1] },
+			{ id: "bomb1", position: [0, 0.2, 1.1] },
+		],
+		accelerationFloors: [
+			// 罠1: 爆弾(0, -1.1)を重心とする正三角形の各頂点に配置
+			// 頂点1: テーブル中央側 (0, -0.6) → 爆弾へ [0, 0, -1]
+			{
+				id: "accel-l8-0",
+				position: [0, 0, -0.6],
+				size: [0.35, 0.3],
+				direction: [0, 0, -1],
+				strength: 8,
+			},
+			// 頂点2: 左奥 (-0.43, -1.35) → 爆弾へ [0.87, 0, 0.5]
+			{
+				id: "accel-l8-1",
+				position: [-0.43, 0, -1.35],
+				size: [0.35, 0.3],
+				direction: [0.87, 0, 0.5],
+				strength: 8,
+			},
+			// 頂点3: 右奥 (0.43, -1.35) → 爆弾へ [-0.87, 0, 0.5]
+			{
+				id: "accel-l8-2",
+				position: [0.43, 0, -1.35],
+				size: [0.35, 0.3],
+				direction: [-0.87, 0, 0.5],
+				strength: 8,
+			},
+			// 罠2: 爆弾(0, 1.1)を重心とする正三角形の各頂点に配置
+			// 頂点1: テーブル中央側 (0, 0.6) → 爆弾へ [0, 0, 1]
+			{
+				id: "accel-l8-3",
+				position: [0, 0, 0.6],
+				size: [0.35, 0.3],
+				direction: [0, 0, 1],
+				strength: 8,
+			},
+			// 頂点2: 右奥 (0.43, 1.35) → 爆弾へ [-0.87, 0, -0.5]
+			{
+				id: "accel-l8-4",
+				position: [0.43, 0, 1.35],
+				size: [0.35, 0.3],
+				direction: [-0.87, 0, -0.5],
+				strength: 8,
+			},
+			// 頂点3: 左奥 (-0.43, 1.35) → 爆弾へ [0.87, 0, -0.5]
+			{
+				id: "accel-l8-5",
+				position: [-0.43, 0, 1.35],
+				size: [0.35, 0.3],
+				direction: [0.87, 0, -0.5],
+				strength: 8,
+			},
+		],
+		balls: [
+			{
+				id: "poolballs0",
+				textureUrl: poolballs0,
+				position: [-0.9, 0.2, 0],
+				shootable: true,
+			},
+			{
+				id: "poolballs1",
+				textureUrl: poolballs1,
+				position: [0, 0.2, -2.0],
+			},
+			{
+				id: "poolballs2",
+				textureUrl: poolballs2,
+				position: [0, 0.2, 2.0],
 			},
 		],
 	},
