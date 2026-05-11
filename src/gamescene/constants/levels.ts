@@ -236,28 +236,38 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level5",
 		name: "Level 5 - Bomb!",
-		description: "爆弾を避けて2球を5打以内に落とす",
+		description: "爆弾を避けて3球を20打以内に落とす",
 		gimmic:
 			"爆弾に触ると爆発してゲームオーバーになります。\n爆弾に触らないように気を付けよう!",
-		shotLimit: 5,
+		shotLimit: 20,
 		cueBallId: "poolballs0",
-		bombs: [{ id: "bomb0", position: [0.2, 0.2, -0.5] }],
+		bombs: [
+			{ id: "bomb0", position: [0.0, 0.2, -1.2] },
+			{ id: "bomb1", position: [-0.3, 0.2, -0.4] },
+			{ id: "bomb2", position: [0.4, 0.2, 0.7] },
+			{ id: "bomb3", position: [0.1, 0.2, 1.4] },
+		],
 		balls: [
 			{
 				id: "poolballs0",
 				textureUrl: poolballs0,
-				position: [-0.6, 0.2, 0],
+				position: [-0.7, 0.2, 0],
 				shootable: true,
 			},
 			{
 				id: "poolballs1",
 				textureUrl: poolballs1,
-				position: [0.0, 0.2, 0],
+				position: [0.3, 0.2, -1.8],
 			},
 			{
 				id: "poolballs2",
 				textureUrl: poolballs2,
-				position: [0.55, 0.2, 0],
+				position: [0.4, 0.2, 0.0],
+			},
+			{
+				id: "poolballs3",
+				textureUrl: poolballs3,
+				position: [-0.1, 0.2, 1.8],
 			},
 		],
 	},
