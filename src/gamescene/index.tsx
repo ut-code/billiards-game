@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { IoInformationCircleOutline, IoRefresh } from "react-icons/io5";
+import { IoHome, IoInformationCircleOutline, IoRefresh } from "react-icons/io5";
 import { PiMagnetFill } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
@@ -568,6 +568,14 @@ export default function GameScene() {
 						title="リトライ(はじめから)"
 					>
 						<IoRefresh />
+					</button>
+					<button
+						type="button"
+						onClick={() => navigate("/")}
+						className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
+						title="ホームに戻る"
+					>
+						<IoHome />
 					</button>
 				</div>
 			)}
