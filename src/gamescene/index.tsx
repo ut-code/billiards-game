@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { IoInformationCircleOutline } from "react-icons/io5";
+import { IoHome, IoInformationCircleOutline, IoRefresh } from "react-icons/io5";
 import { PiMagnetFill } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
 import billiardHallHdr from "../assets/backgroundHDR/billiard_hall_1k.hdr";
@@ -91,6 +91,7 @@ export default function GameScene() {
 		[balls, cueBallId],
 	);
 
+	const [sceneKey, setSceneKey] = useState(0);
 	const [bombExploded, setBombExploded] = useState(false);
 	const bombFinalizeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 	const [isCharging, setIsCharging] = useState(false);
@@ -135,32 +136,40 @@ export default function GameScene() {
 	const gameEndedRef = useRef(false);
 	const hasSeenMovementSinceShotRef = useRef(false);
 
-	useEffect(() => {
-		setBallStates(initialBallState);
-		setBombStates(initialBombState);
-		setMovingBalls({});
-		setIsStartModalOpen(true);
-		setIsCharging(false);
-		setShowRoundStart(false);
-		setShotCount(0);
-		setStrikeVersion(0);
-		setIsStrikeAnimating(false);
-		setPendingShotResolution(false);
-		shootRef.current = null;
+	const resetGameState = useCallback(() => {
 		if (pendingStrikeTimeoutRef.current !== null) {
 			clearTimeout(pendingStrikeTimeoutRef.current);
 			pendingStrikeTimeoutRef.current = null;
 		}
+		if (bombFinalizeTimeoutRef.current !== null) {
+			clearTimeout(bombFinalizeTimeoutRef.current);
+			bombFinalizeTimeoutRef.current = null;
+		}
 		gameEndedRef.current = false;
 		hasSeenMovementSinceShotRef.current = false;
-		setBombExploded(false);
+		shootRef.current = null;
 		ballPositionsRef.current = [...balls, ...bombs].reduce<
 			Record<string, [number, number, number]>
 		>((acc, item) => {
 			acc[item.id] = item.position;
 			return acc;
 		}, {});
+		setBallStates(initialBallState);
+		setBombStates(initialBombState);
+		setMovingBalls({});
+		setIsCharging(false);
+		setIsStartModalOpen(true);
+		setShowRoundStart(false);
+		setShotCount(0);
+		setStrikeVersion(0);
+		setIsStrikeAnimating(false);
+		setPendingShotResolution(false);
+		setBombExploded(false);
 	}, [balls, bombs, initialBallState, initialBombState]);
+
+	useEffect(() => {
+		resetGameState();
+	}, [resetGameState]);
 
 	useEffect(() => {
 		return () => {
@@ -400,6 +409,11 @@ export default function GameScene() {
 		setIsCharging(false);
 	}, []);
 
+	const handleRestart = useCallback(() => {
+		resetGameState();
+		setSceneKey((prev) => prev + 1);
+	}, [resetGameState]);
+
 	if (!level) {
 		return null;
 	}
@@ -414,7 +428,7 @@ export default function GameScene() {
 				<ambientLight intensity={5} />
 				<pointLight position={[10, 10, 10]} />
 				<Suspense>
-					<Physics gravity={[0, -9.8, 0]} stepSize={1 / 120}>
+					<Physics key={sceneKey} gravity={[0, -9.8, 0]} stepSize={1 / 120}>
 						<BilliardTable
 							surfaceTextureUrl={level.table?.clothTextureUrl}
 							floorFriction={level.table?.floorFriction}
@@ -538,14 +552,32 @@ export default function GameScene() {
 				/>
 			)}
 			{!isStartModalOpen && (
-				<button
-					type="button"
-					onClick={() => setIsStartModalOpen(true)}
-					className="absolute bottom-8 left-8 z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
-					title="ミッション詳細を表示"
-				>
-					<IoInformationCircleOutline />
-				</button>
+				<div className="absolute bottom-8 left-8 z-10 flex gap-3">
+					<button
+						type="button"
+						onClick={() => setIsStartModalOpen(true)}
+						className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
+						title="ミッション詳細を表示"
+					>
+						<IoInformationCircleOutline />
+					</button>
+					<button
+						type="button"
+						onClick={handleRestart}
+						className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
+						title="リトライ(はじめから)"
+					>
+						<IoRefresh />
+					</button>
+					<button
+						type="button"
+						onClick={() => navigate("/")}
+						className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-2xl shadow-lg backdrop-blur-sm transition-all hover:bg-white/70 hover:scale-110 active:scale-95"
+						title="ホームに戻る"
+					>
+						<IoHome />
+					</button>
+				</div>
 			)}
 			{bombExploded && (
 				<div className="bomb-flash absolute inset-0 z-20 flex items-center justify-center">
