@@ -172,7 +172,7 @@ const EX_STAGE_ACCEL_FLOORS: AccelerationFloorConfig[] = (() => {
 export const LEVELS: LevelConfig[] = [
 	{
 		id: "level1",
-		name: "Level 1",
+		name: "Level 1 - Normal stage 1",
 		description: "2球を5打以内に落とす",
 		shotLimit: 5,
 		cueBallId: "poolballs0",
@@ -197,7 +197,7 @@ export const LEVELS: LevelConfig[] = [
 	},
 	{
 		id: "level2",
-		name: "Level 2",
+		name: "Level 2 - Normal stage 2",
 		description: "5球を15打以内に落とす",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
