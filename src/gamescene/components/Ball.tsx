@@ -13,6 +13,100 @@ export type ShootFn = (power: number) => boolean;
 
 const PORTAL_TELEPORT_COOLDOWN_MS = 350;
 const PORTAL_WARP_SOUND_URL = "/portal_se.mp3";
+const CUSHION_COLLISION_SOUND_URL = "/maou_se_sound_footstep02.mp3";
+const BALL_COLLISION_SOUND_URL = "/collision_with_balls.mp3";
+const CUSHION_COLLISION_VOLUME = 1;
+const BALL_COLLISION_VOLUME = 0.2;
+const COLLISION_AUDIO_POOL_SIZE = 6;
+
+let collisionPoolsInitialized = false;
+let cushionCollisionPool: HTMLAudioElement[] = [];
+let ballCollisionPool: HTMLAudioElement[] = [];
+let cushionCollisionCursor = 0;
+let ballCollisionCursor = 0;
+let collisionPrimed = false;
+let collisionGestureListenerAttached = false;
+
+function initCollisionAudioPools() {
+	if (collisionPoolsInitialized) return;
+	const createAudioPool = (url: string, volume: number, size: number) => {
+		const pool: HTMLAudioElement[] = [];
+		for (let i = 0; i < size; i += 1) {
+			const audio = new Audio(url);
+			audio.preload = "auto";
+			audio.volume = volume;
+			audio.load();
+			pool.push(audio);
+		}
+		return pool;
+	};
+
+	cushionCollisionPool = createAudioPool(
+		CUSHION_COLLISION_SOUND_URL,
+		CUSHION_COLLISION_VOLUME,
+		COLLISION_AUDIO_POOL_SIZE,
+	);
+	ballCollisionPool = createAudioPool(
+		BALL_COLLISION_SOUND_URL,
+		BALL_COLLISION_VOLUME,
+		COLLISION_AUDIO_POOL_SIZE,
+	);
+	collisionPoolsInitialized = true;
+}
+
+function primeCollisionAudioPools() {
+	if (collisionPrimed) return;
+	if (cushionCollisionPool.length === 0 || ballCollisionPool.length === 0)
+		return;
+	collisionPrimed = true;
+
+	const primeAudio = (audio: HTMLAudioElement | undefined, volume: number) => {
+		if (!audio) return;
+		const desiredVolume = volume;
+		audio.volume = 0;
+		const playPromise = audio.play();
+		if (playPromise) {
+			playPromise
+				.then(() => {
+					audio.pause();
+					audio.currentTime = 0;
+					audio.volume = desiredVolume;
+				})
+				.catch(() => {
+					audio.volume = desiredVolume;
+				});
+		} else {
+			audio.volume = desiredVolume;
+		}
+	};
+
+	primeAudio(cushionCollisionPool[0], CUSHION_COLLISION_VOLUME);
+	primeAudio(ballCollisionPool[0], BALL_COLLISION_VOLUME);
+}
+
+function attachCollisionPrimeOnFirstGesture() {
+	if (collisionGestureListenerAttached) return;
+	collisionGestureListenerAttached = true;
+	window.addEventListener(
+		"pointerdown",
+		() => {
+			primeCollisionAudioPools();
+		},
+		{ once: true },
+	);
+}
+
+function playCollisionFromPool(pool: HTMLAudioElement[], cursor: number) {
+	if (pool.length === 0) return cursor;
+	const index = cursor % pool.length;
+	const audio = pool[index];
+	audio.currentTime = 0;
+	const playPromise = audio.play();
+	if (playPromise) {
+		playPromise.catch(() => {});
+	}
+	return index + 1;
+}
 
 type BallProps = {
 	id: string;
@@ -59,6 +153,20 @@ export function Ball({
 }: BallProps) {
 	const texture = useTexture(textureUrl);
 
+	const playCushionCollision = useCallback(() => {
+		cushionCollisionCursor = playCollisionFromPool(
+			cushionCollisionPool,
+			cushionCollisionCursor,
+		);
+	}, []);
+
+	const playBallCollision = useCallback(() => {
+		ballCollisionCursor = playCollisionFromPool(
+			ballCollisionPool,
+			ballCollisionCursor,
+		);
+	}, []);
+
 	const [ref, api] = useSphere(() => ({
 		mass: 1, // ボールに質量を設定
 		position, // 初期位置を設定 (プレイエリアの上)
@@ -68,15 +176,19 @@ export function Ball({
 		material: { friction: 0.1, restitution: 1 }, // 摩擦を0.1から0.5に増加
 		linearDamping: 0.4, // 移動の減衰を追加
 		angularDamping: 0.4, // 回転の減衰を追加
-		userData: { type: "ball" },
+		userData: { type: "ball", id },
 		onCollide: (e) => {
 			console.log(e);
-			const audio1 = new Audio("/maou_se_sound_footstep02.mp3");
-			const audio2 = new Audio("/collision_with_balls.mp3");
-			audio1.volume = 1;
-			audio2.volume = 0.2;
-			if (e.body.userData.type === "cushion") audio1.play();
-			if (e.body.userData.type === "ball") audio2.play();
+			const type = e.body?.userData?.type;
+			if (type === "cushion") {
+				playCushionCollision();
+			}
+			if (type === "ball") {
+				const otherId = e.body?.userData?.id;
+				if (typeof otherId === "string" && id < otherId) {
+					playBallCollision();
+				}
+			}
 		},
 	}));
 
@@ -161,11 +273,20 @@ export function Ball({
 	}, [accelerationFloors]);
 
 	useEffect(() => {
+		initCollisionAudioPools();
+		attachCollisionPrimeOnFirstGesture();
+	}, []);
+
+	useEffect(() => {
 		portalWarpAudioRef.current = new Audio(PORTAL_WARP_SOUND_URL);
 		portalWarpAudioRef.current.volume = 0.35;
+		portalWarpAudioRef.current.preload = "auto";
+		portalWarpAudioRef.current.load();
 
 		dashAudioRef.current = new Audio("/acceleration_floor_se.mp3");
 		dashAudioRef.current.volume = 0.5;
+		dashAudioRef.current.preload = "auto";
+		dashAudioRef.current.load();
 
 		return () => {
 			portalWarpAudioRef.current = null;

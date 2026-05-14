@@ -78,10 +78,102 @@ const DIVIDER_HEIGHT = PLAY_HEIGHT * 1.2;
 const DIVIDER_THICKNESS = PLAY_HEIGHT * 0.6;
 const DIVIDER_Y = (PLAY_HEIGHT + DIVIDER_HEIGHT) / 2 - OFFSET_Y;
 
+const EX_STAGE_POCKETS: [number, number, number][] = [
+	[PLAY_WIDTH / 2, 0, PLAY_LENGTH / 2],
+	[-PLAY_WIDTH / 2, 0, PLAY_LENGTH / 2],
+	[PLAY_WIDTH / 2, 0, -PLAY_LENGTH / 2],
+	[-PLAY_WIDTH / 2, 0, -PLAY_LENGTH / 2],
+	[PLAY_WIDTH / 2, 0, 0],
+	[-PLAY_WIDTH / 2, 0, 0],
+];
+
+function directionToNearestPocket(
+	position: [number, number, number],
+): [number, number, number] {
+	let best = EX_STAGE_POCKETS[0];
+	let bestDist = Number.POSITIVE_INFINITY;
+	for (const pocket of EX_STAGE_POCKETS) {
+		const dx = pocket[0] - position[0];
+		const dz = pocket[2] - position[2];
+		const dist = dx * dx + dz * dz;
+		if (dist < bestDist) {
+			bestDist = dist;
+			best = pocket;
+		}
+	}
+	return [best[0] - position[0], 0, best[2] - position[2]];
+}
+
+const EX_STAGE_BALLS: BallSpawnConfig[] = (() => {
+	const gridX = [-0.6, -0.36, -0.12, 0.12, 0.36, 0.6];
+	const gridZ = [-0.8, -0.4, 0, 0.4, 0.8];
+	const textures = [
+		poolballs1,
+		poolballs2,
+		poolballs3,
+		poolballs4,
+		poolballs5,
+		poolballs6,
+	];
+	const balls: BallSpawnConfig[] = [];
+	let idx = 0;
+	for (const z of gridZ) {
+		for (const x of gridX) {
+			if (idx === 0) {
+				balls.push({
+					id: "poolballs0",
+					textureUrl: poolballs0,
+					position: [x, 0.2, z],
+					shootable: true,
+				});
+			} else {
+				const textureUrl = textures[(idx - 1) % textures.length];
+				balls.push({
+					id: `exball-${idx}`,
+					textureUrl,
+					position: [x, 0.2, z],
+				});
+			}
+			idx += 1;
+		}
+	}
+	return balls;
+})();
+
+const EX_STAGE_ACCEL_FLOORS: AccelerationFloorConfig[] = (() => {
+	const positions: [number, number, number][] = [
+		[-0.9, 0, -1.6],
+		[0, 0, -1.6],
+		[0.9, 0, -1.6],
+		[-0.9, 0, -1.2],
+		[0, 0, -1.2],
+		[0.9, 0, -1.2],
+		[-0.9, 0, -0.6],
+		[0, 0, -0.6],
+		[0.9, 0, -0.6],
+		[-0.9, 0, 0.6],
+		[0, 0, 0.6],
+		[0.9, 0, 0.6],
+		[-0.9, 0, 1.2],
+		[0, 0, 1.2],
+		[0.9, 0, 1.2],
+		[-0.9, 0, 1.6],
+		[0, 0, 1.6],
+		[0.9, 0, 1.6],
+	];
+	return positions.map((position, index) => ({
+		id: `accel-ex-${index}`,
+		position,
+		size: [0.45, 0.3],
+		direction: directionToNearestPocket(position),
+		strength: 3.5,
+	}));
+})();
+
 export const LEVELS: LevelConfig[] = [
 	{
 		id: "level1",
-		name: "Level 1",
+		name: "Level 1 - Normal stage 1",
 		description: "2球を5打以内に落とす",
 		shotLimit: 5,
 		cueBallId: "poolballs0",
@@ -106,7 +198,7 @@ export const LEVELS: LevelConfig[] = [
 	},
 	{
 		id: "level2",
-		name: "Level 2",
+		name: "Level 2 - Normal stage 2",
 		description: "5球を15打以内に落とす",
 		shotLimit: 15,
 		cueBallId: "poolballs0",
@@ -560,6 +652,17 @@ export const LEVELS: LevelConfig[] = [
 				position: [0, 0.2, 2.0],
 			},
 		],
+	},
+	{
+		id: "level-ex-30",
+		name: "EX Stage - 30 Balls",
+		description: "30球を制限打数内に落とす。",
+		gimmic:
+			"大量のボールが配置されているステージです。うまくボールを加速床に乗せて落とそう！",
+		shotLimit: 10,
+		cueBallId: "poolballs0",
+		accelerationFloors: EX_STAGE_ACCEL_FLOORS,
+		balls: EX_STAGE_BALLS,
 	},
 ];
 
