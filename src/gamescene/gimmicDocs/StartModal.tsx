@@ -1,6 +1,7 @@
 type Props = {
 	title: string;
 	description: string;
+	images?: string[];
 	onClose: () => void;
 };
 
@@ -8,7 +9,7 @@ type Props = {
  * ステージ開始時に表示されるギミック説明用のモーダル。
  * UIフレームは共通化し、内容はプロップスで受け取る。
  */
-export function StartModal({ title, description, onClose }: Props) {
+export function StartModal({ title, description, images, onClose }: Props) {
 	return (
 		<div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
 			<div className="w-full max-w-md rounded-2xl border border-white/20 bg-zinc-900/90 p-8 text-white shadow-[0_0_50px_rgba(0,0,0,0.5)]">
@@ -18,6 +19,18 @@ export function StartModal({ title, description, onClose }: Props) {
 				<h2 className="mb-6 text-center text-4xl font-black tracking-tighter text-white">
 					{title}
 				</h2>
+				{images && images.length > 0 && (
+					<div className="mb-6 flex gap-2">
+						{images.map((src) => (
+							<img
+								key={src}
+								src={src}
+								alt={"ギミックの説明画像"}
+								className="h-32 min-w-0 flex-1 rounded-lg border border-white/10 object-cover"
+							/>
+						))}
+					</div>
+				)}
 				<div className="mb-10 min-h-[80px] text-center text-base font-medium leading-relaxed text-zinc-200">
 					{description.split("\n").map((line, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: simple static text

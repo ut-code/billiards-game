@@ -548,6 +548,7 @@ export default function GameScene() {
 					description={
 						level.gimmic ?? "全てのターゲットをポケットに落としてください。"
 					}
+					images={level.gimicImages}
 					onClose={() => setIsStartModalOpen(false)}
 				/>
 			)}
