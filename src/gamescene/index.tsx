@@ -548,6 +548,7 @@ export default function GameScene() {
 					description={
 						level.gimmic ?? "全てのターゲットをポケットに落としてください。"
 					}
+					images={level.gimicImages}
 					onClose={() => setIsStartModalOpen(false)}
 				/>
 			)}
@@ -592,17 +593,37 @@ export default function GameScene() {
 			{magnetEnabled && (
 				<div className="absolute bottom-8 right-8 z-10 flex items-center gap-3">
 					<div
-						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "a" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+						className={`flex flex-col items-center gap-1 transition-all duration-200 ${pressedKey === "a" && anyBallMoving ? "opacity-100 scale-110" : "opacity-65"}`}
 					>
-						←
-					</div>
-					<div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gray-300/55 text-3xl shadow-lg backdrop-blur-sm">
-						<PiMagnetFill />
+						<span
+							className={`text-4xl font-bold drop-shadow-[0_0_4px_rgba(0,0,0,0.9)] transition-colors duration-200 ${pressedKey === "a" && anyBallMoving ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.9)]" : "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"}`}
+						>
+							←
+						</span>
+						<span
+							className={`rounded px-1.5 py-0.5 font-mono text-xs font-bold transition-colors duration-200 ${pressedKey === "a" && anyBallMoving ? "bg-cyan-400/50 text-cyan-200" : "bg-black/40 text-white"}`}
+						>
+							A
+						</span>
 					</div>
 					<div
-						className={`text-5xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-opacity duration-200 ${pressedKey === "d" && anyBallMoving ? "opacity-100" : "opacity-0"}`}
+						className={`flex h-14 w-14 items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition-all duration-200 ${pressedKey && anyBallMoving ? "border-blue-400/80 bg-blue-500/70 ring-2 ring-blue-400 shadow-[0_0_16px_rgba(96,165,250,0.6)]" : "border-blue-400/30 bg-blue-500/40"}`}
 					>
-						→
+						<PiMagnetFill className="text-3xl text-blue-100" />
+					</div>
+					<div
+						className={`flex flex-col items-center gap-1 transition-all duration-200 ${pressedKey === "d" && anyBallMoving ? "opacity-100 scale-110" : "opacity-65"}`}
+					>
+						<span
+							className={`text-4xl font-bold drop-shadow-[0_0_4px_rgba(0,0,0,0.9)] transition-colors duration-200 ${pressedKey === "d" && anyBallMoving ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.9)]" : "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"}`}
+						>
+							→
+						</span>
+						<span
+							className={`rounded px-1.5 py-0.5 font-mono text-xs font-bold transition-colors duration-200 ${pressedKey === "d" && anyBallMoving ? "bg-cyan-400/50 text-cyan-200" : "bg-black/40 text-white"}`}
+						>
+							D
+						</span>
 					</div>
 				</div>
 			)}

@@ -58,6 +58,7 @@ export type LevelConfig = {
 	shotLimit: number;
 	description: string;
 	gimmic?: string;
+	gimicImages?: string[];
 	cueBallId: string;
 	portals?: PortalConfig[];
 	table?: {
@@ -241,6 +242,7 @@ export const LEVELS: LevelConfig[] = [
 		description: "氷の床で6球を15打以内に落とす",
 		gimmic:
 			"氷の床のため摩擦がほとんどなく、ボールが止まりにくくなっています。\n丁寧なショットでコントロールしよう！",
+		gimicImages: ["/stages/level3.png"],
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		table: {
@@ -293,6 +295,7 @@ export const LEVELS: LevelConfig[] = [
 		description: "スイッチを起動させ3球を15打以内に落とす",
 		gimmic:
 			"動いているスイッチに球を強くぶつけると、\nポケットが1分間開きます。\n開いたすきを狙ってボールをすべて落とそう！",
+		gimicImages: ["/stages/level4.png"],
 		shotLimit: 15,
 		cueBallId: "poolballs0",
 		gate: {
@@ -332,6 +335,7 @@ export const LEVELS: LevelConfig[] = [
 		description: "爆弾を避けて3球を20打以内に落とす",
 		gimmic:
 			"爆弾に触ると爆発してゲームオーバーになります。\n爆弾に触らないように気を付けよう!",
+		gimicImages: ["/stages/level5.png"],
 		shotLimit: 20,
 		cueBallId: "poolballs0",
 		bombs: [
@@ -370,6 +374,7 @@ export const LEVELS: LevelConfig[] = [
 		description: "仕切りを越えるためにワープホールを使う",
 		gimmic:
 			"テーブルが2枚の仕切りで3つのエリアに分断されています。\nワープホールに入ると別のエリアへ移動できます。\nワープを活用して全エリアのボールをポケットに落とそう！",
+		gimicImages: ["/stages/level6.png"],
 		shotLimit: 9,
 		cueBallId: "poolballs0",
 		portals: [
@@ -432,6 +437,7 @@ export const LEVELS: LevelConfig[] = [
 		description: "ボールを曲げて加速床を避ける",
 		gimmic:
 			"磁石の力でボールの軌道を操作できます。\nショット中にA/Dキーを押すと左右に曲げられます。\n光る床（加速床）に乗ると弾き飛ばされるので、\nうまく避けてボールを落とそう！",
+		gimicImages: ["/stages/level7-1.png", "/stages/level7-2.png"],
 		shotLimit: 7,
 		cueBallId: "poolballs0",
 		magnetEn: true,
