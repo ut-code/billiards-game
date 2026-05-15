@@ -656,10 +656,10 @@ export const LEVELS: LevelConfig[] = [
 	{
 		id: "level-ex-30",
 		name: "EX Stage - 30 Balls",
-		description: "30球を制限打数内に落とす。",
+		description: "30球を制限打数内に落とす",
 		gimmic:
 			"大量のボールが配置されているステージです。うまくボールを加速床に乗せて落とそう！",
-		shotLimit: 10,
+		shotLimit: 15,
 		cueBallId: "poolballs0",
 		accelerationFloors: EX_STAGE_ACCEL_FLOORS,
 		balls: EX_STAGE_BALLS,

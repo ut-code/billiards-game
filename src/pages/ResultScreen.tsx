@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { LEVELS } from "@/gamescene/constants/levels";
 
 type ResultState = {
 	levelId: string;
@@ -13,6 +14,10 @@ export function ResultScreen() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const state = location.state as ResultState | undefined;
+	const isExStage = state?.levelId.startsWith("level-ex-") ?? false;
+	const nextLevelId = state
+		? LEVELS[LEVELS.findIndex((level) => level.id === state.levelId) + 1]?.id
+		: undefined;
 
 	if (!state) {
 		return (
@@ -63,6 +68,15 @@ export function ResultScreen() {
 					>
 						リトライ
 					</button>
+					{state.success && !isExStage && nextLevelId && (
+						<button
+							type="button"
+							onClick={() => navigate(`/play/${nextLevelId}`)}
+							className="rounded-xl bg-emerald-400 text-stone-900 px-6 py-3 font-bold hover:bg-emerald-300 transition-colors"
+						>
+							次のレベル
+						</button>
+					)}
 					<button
 						type="button"
 						onClick={() => navigate("/")}
