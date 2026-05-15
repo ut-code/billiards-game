@@ -193,6 +193,13 @@ export default function GameScene() {
 		[ballStates, targetBallIds],
 	);
 	const remainingShots = Math.max(shotLimit - shotCount, 0);
+	const canStartCharge =
+		!isStartModalOpen &&
+		!isCharging &&
+		!isStrikeAnimating &&
+		!anyBallMoving &&
+		shotCount < shotLimit &&
+		(ballStates[cueBallId]?.visible ?? false);
 
 	const cueRespawnPending = ballStates[cueBallId]?.respawnNextRound ?? false;
 	const canJudgeResult =
@@ -585,6 +592,11 @@ export default function GameScene() {
 					<p className="bomb-text text-white text-6xl font-bold drop-shadow-[0_0_24px_rgba(255,120,0,1)]">
 						💥 BOOM!
 					</p>
+				</div>
+			)}
+			{canStartCharge && (
+				<div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 rounded-full border border-white/15 bg-black/60 px-6 py-2 text-sm font-bold tracking-[0.2em] text-white/90 shadow-lg backdrop-blur-sm">
+					キュー球をクリックしてショット準備
 				</div>
 			)}
 			{isCharging && (
